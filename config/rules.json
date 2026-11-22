@@ -1,0 +1,58 @@
+{
+  "_comment": "Tunable rules for build_venue_export.py. Keys starting with _ are ignored.",
+  "stopwords": ["the", "a", "an", "and", "with", "of", "our", "your", "on", "in", "to", "for", "add", "side", "portion", "large", "small", "new"],
+  "spelling_variants": {
+    "bolognaise": "bolognese",
+    "chimmichurri": "chimichurri",
+    "churri": "chimichurri",
+    "smokey": "smoky",
+    "barbeque": "bbq"
+  },
+  "dietary_codes": {
+    "V": "Vegetarian",
+    "VG": "Vegan",
+    "VE": "Vegan",
+    "GFA": "Gluten free option available",
+    "GF": "Gluten free",
+    "N": "Contains nuts",
+    "NGCI": "Non-gluten containing ingredients"
+  },
+  "drink_sections": ["liveners", "cocktail", "wine", "beer", "spirit", "mocktail", "spritz", "hot drink", "coffee", "tea", "low & no", "champagne", "fizz"],
+  "promo_patterns": ["^buy \\d", "^free ", "^any (two|three|\\d)", "^fizz friday", "^steak & wine", "^sunday roast from", "^coffee & cake", "^surf your turf", "^add ", "^make it "],
+  "kids_section_words": ["kid", "children"],
+  "kids_recipe_suffix": " (Childrens)",
+  "kids_recipe_marker": "children",
+  "menu_kinds": [
+    ["Drinks", ["drink", "wine"]],
+    ["Sunday", ["sunday"]],
+    ["Events", ["christmas", "party", "new-year"]],
+    ["Breakfast", ["breakfast"]],
+    ["Food", ["menu"]]
+  ],
+  "menu_kind_default": "Other",
+  "menu_kind_order": ["Food", "Breakfast", "Sunday", "Events", "Drinks", "Other"],
+  "generic_name_words": ["the", "inn", "hotel", "full", "menu", "restaurant", "at"],
+  "region_page_pattern": "^accommodation_([a-z-]+)\\.txt$",
+  "region_unknown": "Unsorted",
+  "page_markers": {
+    "amenities_start": "Property Amenities",
+    "amenities_end": "Choose your dates",
+    "serving_start": "Serving Times",
+    "features_start": "Directions",
+    "features_end": "Menus",
+    "offers_start": "Special Offers",
+    "offers_end": "FAQs",
+    "offer_button": "View offer",
+    "faq_start": "FAQs",
+    "faq_end_markers": ["Explore", "Attractions", "Things to do", "Nearby inns", "Book your Winter Break", "Book your Winter Breaks"],
+    "faq_close": "Close",
+    "faq_question_starts": ["Is ", "Do ", "What ", "Can ", "How ", "Are ", "Where "],
+    "nearby_start": "Nearby inns",
+    "nearby_end_markers": ["Book your Winter Break today!", "Book your Winter Breaks today!", "Book a room at"],
+    "nearby_button": "View Inn",
+    "attractions_start": "Attractions",
+    "attractions_end": "Transport",
+    "description_lines": 3,
+    "description_skip_prefixes": ["Directions", "Check in", "No. Guests", "Guests", "Adults", "Children", "Ages", "For large", "Apply", "Clear", "Book now", "Accept marketing", "Manage cookie", "+", "The Inn", "Rooms", "Food & Drink", "Book A Table", "Offers/Packages", "FAQs", "Discover", "Christmas", "Winter Breaks", "Book direct", "Save 30%", "Lowest Price", "Featured special", "Property Amenities"]
+  }
+}

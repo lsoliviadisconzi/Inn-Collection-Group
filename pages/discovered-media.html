@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Discovered Media — Review &amp; Download</title>
+<style>
+  :root{
+    --bg:#0f1216; --panel:#161b22; --panel2:#1c2330; --line:#2a3341;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#3fb950; --blue:#2f81f7;
+    --warn:#d29922; --danger:#f85149; --r:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  code{background:#0b0e12;padding:1px 5px;border-radius:4px;font-size:.9em}
+  button{font:inherit;cursor:pointer}
+
+  /* ---------- toolbar ---------- */
+  header{
+    position:sticky;top:0;z-index:20;background:rgba(15,18,22,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+    padding:10px 16px;
+  }
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .bar + .bar{margin-top:8px}
+  .grow{flex:1 1 260px;min-width:180px}
+  input[type=search],select{
+    background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    padding:7px 10px;border-radius:8px;outline:none;font:inherit;width:100%;
+  }
+  input[type=search]:focus,select:focus{border-color:var(--blue)}
+  .btn{
+    background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    padding:7px 12px;border-radius:8px;white-space:nowrap;
+  }
+  .btn:hover{border-color:#41505f;background:#232c3a}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#04210c;font-weight:600}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .chip{
+    background:var(--panel2);border:1px solid var(--line);border-radius:999px;
+    padding:3px 10px;color:var(--muted);font-size:12px;
+  }
+  .chip b{color:var(--text)}
+  .toggle{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;white-space:nowrap}
+  .toggle input{accent-color:var(--accent)}
+
+  /* export menu */
+  details.menu{position:relative}
+  details.menu > summary{
+    list-style:none;background:var(--accent);border:1px solid var(--accent);
+    color:#04210c;font-weight:600;padding:7px 12px;border-radius:8px;
+  }
+  details.menu > summary::-webkit-details-marker{display:none}
+  details.menu[open] > summary{filter:brightness(1.08)}
+  .menu-list{
+    position:absolute;right:0;top:calc(100% + 6px);min-width:260px;z-index:30;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:6px;box-shadow:0 16px 40px rgba(0,0,0,.55);
+  }
+  .menu-list button{
+    display:block;width:100%;text-align:left;background:none;border:0;
+    color:var(--text);padding:8px 10px;border-radius:6px;
+  }
+  .menu-list button:hover{background:var(--panel2)}
+  .menu-list .sub{display:block;color:var(--muted);font-size:11.5px}
+  .export-status{
+    margin:0;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);
+    color:var(--muted);overflow-wrap:anywhere;
+  }
+  .export-status code{color:var(--text)}
+
+  /* ---------- content ---------- */
+  main{padding:16px;max-width:1800px;margin:0 auto}
+  details.cat{
+    border:1px solid var(--line);border-radius:var(--r);
+    background:var(--panel);margin-bottom:14px;overflow:hidden;
+  }
+  details.cat > summary{
+    list-style:none;display:flex;align-items:center;gap:10px;
+    padding:11px 14px;cursor:pointer;user-select:none;
+    background:var(--panel2);border-bottom:1px solid transparent;
+  }
+  details.cat[open] > summary{border-bottom-color:var(--line)}
+  details.cat > summary::-webkit-details-marker{display:none}
+  details.cat > summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+  details.cat[open] > summary::before{transform:rotate(90deg)}
+  details.cat > summary h2{margin:0;font-size:14px;font-weight:600;letter-spacing:.2px}
+  details.cat > summary .n{color:var(--muted);font-size:12px}
+  .summary-actions{margin-left:auto;display:flex;gap:6px}
+  .summary-actions button{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    font-size:12px;padding:3px 9px;border-radius:6px;
+  }
+  .summary-actions button:hover{color:var(--text);border-color:#41505f}
+
+  .grid{
+    display:grid;gap:12px;padding:14px;
+    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  }
+
+  /* ---------- card ---------- */
+  .card{
+    position:relative;background:var(--panel2);border:1px solid var(--line);
+    border-radius:var(--r);overflow:hidden;cursor:pointer;
+    transition:border-color .12s,transform .12s;
+    display:flex;flex-direction:column;
+  }
+  .card:hover{border-color:#41505f;transform:translateY(-1px)}
+  .card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .card.sel::after{
+    content:"✓";position:absolute;top:7px;left:7px;width:20px;height:20px;
+    background:var(--accent);color:#04210c;border-radius:50%;font-size:13px;
+    font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2;
+  }
+  .thumb{
+    aspect-ratio:4/3;background:#0b0e12;display:flex;align-items:center;
+    justify-content:center;overflow:hidden;border-bottom:1px solid var(--line);
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  
+  /* Distinct styling for placeholders */
+  .ph{
+    font-size:13px;font-weight:700;letter-spacing:1px;
+    text-transform:uppercase;padding:10px;text-align:center;
+    display: flex;align-items: center; justify-content: center; flex-direction: column; gap: 4px;
+  }
+  .ph span { font-size: 24px; }
+  .ph.doc { color:var(--warn); }
+  .ph.pdf { color:var(--danger); }
+  .ph.arc { color:#a371f7; }
+
+  .meta{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .name{
+    font-size:12.5px;font-weight:600;line-height:1.25;
+    overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    word-break:break-word;
+  }
+  .path{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  
+  .venue-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tag.venue {
+    background: rgba(47, 129, 247, 0.15);
+    color: var(--blue);
+    border: 1px solid rgba(47, 129, 247, 0.3);
+  }
+  .tag.region {
+    background: rgba(163, 113, 247, 0.15);
+    color: #a371f7;
+    border: 1px solid rgba(163, 113, 247, 0.3);
+  }
+
+  select.variant{
+    font-size:11.5px;padding:4px 6px;border-radius:6px;
+    background:var(--panel);border:1px solid var(--line);
+  }
+  .card-download{
+    align-self:flex-start;text-decoration:none;
+    padding: 4px 8px; font-size: 11px;
+  }
+  .badge{
+    position:absolute;top:7px;right:7px;font-size:10.5px;font-weight:700;
+    padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.7);
+    border:1px solid var(--line);color:var(--muted);z-index:2;
+  }
+  .badge.doc{color:var(--warn);border-color:#4a3a12}
+  .badge.pdf{color:var(--danger);border-color:#5a1e1a}
+  .badge.arc{color:#a371f7;border-color:#3a1e5a}
+  .badge.img{color:var(--blue);border-color:#1b3a63}
+
+  /* ---------- loader ---------- */
+  #loader{
+    position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:12px;padding:24px;
+    background:rgba(15,18,22,.97);text-align:center;
+  }
+  #loader.drag{background:rgba(47,129,247,.14);outline:3px dashed var(--blue);outline-offset:-20px}
+  #loader h2{margin:0;font-size:18px}
+  #loader p{margin:0;color:var(--muted);max-width:520px}
+  .link{color:var(--blue);text-decoration:underline;cursor:pointer}
+  .hidden{display:none !important}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="grow"><input id="search" type="search" placeholder="Search filename, path or URL…  (press /)" /></div>
+    
+    <select id="fRegion" style="width:auto">
+      <option value="all">All regions</option>
+    </select>
+    
+    <select id="fVenue" style="width:auto">
+      <option value="all">All venues</option>
+    </select>
+    
+    <select id="fCat" style="width:auto">
+      <option value="all">All categories</option>
+    </select>
+    
+    <select id="fType" style="width:auto">
+      <option value="all">All types</option>
+      <option value="menu">Menus (PDFs)</option>
+      <option value="pdf">All PDFs</option>
+      <option value="image">Images</option>
+      <option value="archive">Archives</option>
+      <option value="document">Other Docs</option>
+    </select>
+  </div>
+  <div class="bar">
+    <button class="btn" id="selAll">Select all visible</button>
+    <button class="btn" id="selNone">Clear</button>
+    <button class="btn" id="selInv">Invert visible</button>
+    <span class="chip"><b id="cSel">0</b> selected</span>
+    <span class="chip"><b id="cAssets">0</b> assets · <b id="cUrls">0</b> URLs</span>
+    <a class="btn" href="menu-review.html">Review menus</a>
+    <a class="btn" href="menu-explorer.html">Menu explorer</a>
+    <a class="btn" href="launch-readiness.html">Launch readiness</a>
+    <a class="btn" href="product-data.html">Product data</a>
+    <div style="flex:1"></div>
+    <details class="menu" id="exportMenu">
+      <summary>⬇ Export selected</summary>
+      <div class="menu-list">
+        <button data-act="download">Download files <span class="sub">saves to exports/ by region, venue, and category</span></button>
+        <button data-act="sh">Bash script <span class="sub">manual download script with category folders</span></button>
+        <button data-act="ps1">PowerShell script <span class="sub">manual download script with category folders (Windows)</span></button>
+        <button data-act="wget">wget list <span class="sub">URLs only, for <code>wget -i</code></span></button>
+        <button data-act="txt">Plain URL list <span class="sub">one URL per line</span></button>
+        <button data-act="csv">Manifest CSV <span class="sub">url, host, path, type, category</span></button>
+        <button data-act="copy">Copy URLs to clipboard</button>
+        <button data-act="tabs">Open in new tabs <span class="sub">first 15 only — browsers block more</span></button>
+      </div>
+    </details>
+  </div>
+</header>
+
+<p id="exportStatus" class="export-status" role="status" aria-live="polite" hidden></p>
+<main id="content"></main>
+
+<div id="loader">
+  <h2>Load <code>discovered_media.csv</code></h2>
+  <p>Drag the CSV file anywhere on this page, or
+    <label class="link">choose a file<input type="file" id="fileInput" accept=".csv,text/csv" hidden></label>.
+  </p>
+  <p style="font-size:12.5px">Start the local server with <code>python3 menu_review_server.py</code> to load this page and the menu review automatically.</p>
+</div>
+
+<script>
+"use strict";
+
+/* ───────────────────────── helpers ───────────────────────── */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c =>
+  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+
+const SIZE_RE = /-(\d+)x(\d+)\.[a-z0-9]{2,5}$/i;
+
+function variantInfo(url, path) {
+  const clean = path.split('?')[0];
+  let m = clean.match(SIZE_RE);
+  if (!m) m = url.match(/[ps](\d+)x(\d+)_/);
+  const w = m ? +m[1] : null, h = m ? +m[2] : null;
+  return { w, h, area: (w && h) ? w * h : Number.MAX_SAFE_INTEGER };
+}
+
+function groupKey(path) {
+  return path.split('?')[0]
+             .replace(/-\d+x\d+/g, '')
+             .replace(/-scaled$/i, '')
+             .toLowerCase();
+}
+
+const extOf = n => (n.match(/\.([a-z0-9]{1,5})$/i) || [,'?'])[1].toUpperCase();
+
+/* ───────────────────────── venue & region mapping ───────────────────────── */
+const VENUE_PATTERNS = [
+  { pattern: /kingslodge/i, name: 'The Kingslodge Inn' },
+  { pattern: /seaburn/i, name: 'The Seaburn Inn' },
+  { pattern: /ambleside/i, name: 'The Ambleside Inn' },
+  { pattern: /coniston/i, name: 'The Coniston Inn' },
+  { pattern: /bamburgh/i, name: 'The Bamburgh Castle Inn' },
+  { pattern: /midland/i, name: 'The Midland' },
+  { pattern: /pheasant/i, name: 'The Pheasant Inn' },
+  { pattern: /seaton/i, name: 'The Seaton Lane Inn' },
+  { pattern: /kings-head|kingshead/i, name: "The King's Head Inn" },
+  { pattern: /swan/i, name: 'The Swan, Grasmere' },
+  { pattern: /temperance/i, name: 'The Temperance Inn' },
+  { pattern: /ullswater/i, name: 'The Ullswater Inn' },
+  { pattern: /wateredge/i, name: 'The Wateredge Inn' },
+  { pattern: /waterhead/i, name: 'The Waterhead Inn' },
+  { pattern: /wordsworth/i, name: 'The Wordsworth' },
+  { pattern: /bulls-head|bullshead/i, name: "The Bull's Head Inn" },
+  { pattern: /swallow/i, name: 'The Swallow Falls Inn' },
+  { pattern: /black-swan|blackswan/i, name: 'The Black Swan' },
+  { pattern: /harrogate/i, name: 'The Harrogate Inn' },
+  { pattern: /knaresborough/i, name: 'The Knaresborough Inn' },
+  { pattern: /northallerton/i, name: 'The Northallerton Inn' },
+  { pattern: /ripon/i, name: 'The Ripon Inn' },
+  { pattern: /stables/i, name: 'The Stables, Whitby' },
+  { pattern: /angel/i, name: 'The Angel Inn' },
+  { pattern: /hogs-head|hogshead/i, name: 'The Hogs Head Inn' },
+  { pattern: /lindisfarne/i, name: 'The Lindisfarne Inn' },
+  { pattern: /amble/i, name: 'The Amble Inn' }, // Must be after ambleside
+  { pattern: /offshore/i, name: 'Offshore' },
+  { pattern: /dean-court|deancourt/i, name: 'Dean Court' },
+  { pattern: /tynemouth/i, name: 'The Tynemouth Castle Inn' }
+];
+
+const VENUE_REGIONS = {
+  'The Kingslodge Inn': 'County Durham',
+  'The Seaton Lane Inn': 'County Durham',
+  'The Midland': 'Lancashire',
+  'Offshore': 'Lancashire',
+  'The Seaburn Inn': 'Tyne and Wear',
+  'The Tynemouth Castle Inn': 'Tyne and Wear',
+  'The Ambleside Inn': 'Lake District',
+  'The Angel Inn': 'Lake District',
+  'The Coniston Inn': 'Lake District',
+  'The Pheasant Inn': 'Lake District',
+  'The Swan, Grasmere': 'Lake District',
+  'The Temperance Inn': 'Lake District',
+  'The Ullswater Inn': 'Lake District',
+  'The Wateredge Inn': 'Lake District',
+  'The Waterhead Inn': 'Lake District',
+  'The Wordsworth': 'Lake District',
+  "The Bull's Head Inn": 'North Wales',
+  'The Swallow Falls Inn': 'North Wales',
+  'The Amble Inn': 'Northumberland',
+  'The Bamburgh Castle Inn': 'Northumberland',
+  'The Commissioners Quay Inn': 'Northumberland',
+  'The Hogs Head Inn': 'Northumberland',
+  'The Lindisfarne Inn': 'Northumberland',
+  'Dean Court': 'Yorkshire',
+  'The Black Swan': 'Yorkshire',
+  'The Harrogate Inn': 'Yorkshire',
+  'The Knaresborough Inn': 'Yorkshire',
+  'The Northallerton Inn': 'Yorkshire',
+  'The Ripon Inn': 'Yorkshire',
+  "The King's Head Inn": 'Yorkshire',
+  'The Stables, Whitby': 'Yorkshire'
+};
+
+function getVenue(g) {
+  const haystack = (g.name + ' ' + g.key).toLowerCase();
+  for (const v of VENUE_PATTERNS) {
+    if (v.pattern.test(haystack)) return v.name;
+  }
+  return 'General / Unknown';
+}
+
+/* ───────────────────────── CSV parsing ───────────────────────── */
+function splitLine(line) {
+  const out = []; let cur = '', q = false;
+  for (const c of line) {
+    if (c === '"') { q = !q; continue; }
+    if (c === ',' && !q) { out.push(cur); cur = ''; } else cur += c;
+  }
+  out.push(cur);
+  if (out.length > 4) return [out.slice(0, -3).join(','), ...out.slice(-3)];
+  return out;
+}
+
+function parseCSV(text) {
+  const rows = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const f = splitLine(line);
+    if (f.length < 4) continue;
+    const [url, host, path, type] = f;
+    if (url.toLowerCase() === 'url') continue;
+    if (!/^https?:\/\//i.test(url)) continue;
+    rows.push({ url, host, path, type: type.toLowerCase() });
+  }
+  return rows;
+}
+
+/* ───────────────────────── categorisation ───────────────────────── */
+const CAT_ORDER = [
+  'PDF Menus',
+  'PDF Documents',
+  'Archives',
+  'Venues & property',
+  'Screenshots & design',
+  'News article images',
+  'Section & landing pages',
+  'Unlabelled uploads',
+  'Social / CDN',
+  'Logos & brand',
+  'Other Documents',
+  'Other'
+];
+
+function categorize(g) {
+  const k = g.key;
+  const nameLower = g.name.toLowerCase();
+
+  if (g.type === 'document') {
+    if (nameLower.endsWith('.pdf')) {
+      if (nameLower.includes('menu') || nameLower.includes('drinks')) return 'PDF Menus';
+      return 'PDF Documents';
+    }
+    if (/\.(zip|7z|rar|tar|gz)$/i.test(nameLower)) return 'Archives';
+    return 'Other Documents';
+  }
+
+  if (/\.svg$/i.test(k))                         return 'Logos & brand';
+  if (/^\/news\//.test(k))                       return 'News article images';
+  if (/^\/(accommodation|things-to-do|special-offer)\//.test(k))
+                                                 return 'Section & landing pages';
+  if (g.cdn)                                     return 'Social / CDN';
+  if (/inn|exterior|hotel|drone|seaburn|swallow|kingslodge|ambleside|bamburgh|commissioner|pheasant|seaton|midland|angel|temperance|bulls|hogs|ripon|harrogate|coniston|knaresborough|wordsworth|stables|swan|black-swan|lindisfarne|amble|yu7f|balcony|bedroom|room|bar-|restaurant/i.test(k))
+                                                 return 'Venues & property';
+  if (/screenshot|untitled-design|portfolio/i.test(k))
+                                                 return 'Screenshots & design';
+  if (/^\/[^/]*\d[^/]*\.(jpe?g|png|webp|gif|avif)$/i.test(k))
+                                                 return 'Unlabelled uploads';
+  return 'Other';
+}
+
+/* ───────────────────────── build the model ───────────────────────── */
+let GROUPS = [];
+
+function buildGroups(rows) {
+  const map = new Map();
+
+  for (const r of rows) {
+    const key = groupKey(r.path);
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        path: r.path.split('?')[0],
+        host: r.host,
+        type: r.type,
+        cdn: false,
+        name: decodeURIComponent(r.path.split('/').pop() || r.path),
+        variants: [],
+        selected: false,
+        variantIdx: 0
+      });
+    }
+    const g = map.get(key);
+    if (/[?&]_nc_cat=/.test(r.url)) g.cdn = true;
+    if (!g.variants.some(v => v.url === r.url)) {
+      const vi = variantInfo(r.url, r.path);
+      g.variants.push({ url: r.url, path: r.path, w: vi.w, h: vi.h, area: vi.area });
+    }
+  }
+
+  for (const g of map.values()) {
+    g.variants.sort((a, b) => (a.area - b.area) || a.url.localeCompare(b.url));
+    g.variantIdx = g.variants.length - 1;
+    g.thumb = g.variants[0].url;
+    g.category = categorize(g);
+    g.venue = getVenue(g);
+    g.region = VENUE_REGIONS[g.venue] || 'General / Unknown';
+  }
+
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/* ───────────────────────── rendering ───────────────────────── */
+const content   = $('#content');
+const searchEl  = $('#search');
+const fCat      = $('#fCat');
+const fType     = $('#fType');
+const fVenue    = $('#fVenue');
+const fRegion   = $('#fRegion');
+
+function variantLabel(v) {
+  return (v.w && v.h) ? `${v.w}×${v.h}` : 'original';
+}
+
+function cardHTML(g) {
+  const isDoc = g.type === 'document';
+  const isPDF = isDoc && g.name.toLowerCase().endsWith('.pdf');
+  const isArchive = isDoc && /\.(zip|7z|rar|tar|gz)$/i.test(g.name);
+  
+  let thumb, badgeClass, badgeText;
+
+  if (isPDF) {
+    thumb = `<div class="ph pdf"><span>📄</span>PDF</div>`;
+    badgeClass = 'pdf'; badgeText = 'PDF';
+  } else if (isArchive) {
+    thumb = `<div class="ph arc"><span>📦</span>ARCHIVE</div>`;
+    badgeClass = 'arc'; badgeText = 'ZIP';
+  } else if (isDoc) {
+    thumb = `<div class="ph doc"><span>📝</span>${esc(extOf(g.name))}</div>`;
+    badgeClass = 'doc'; badgeText = 'DOC';
+  } else {
+    thumb = `<img loading="lazy" referrerpolicy="no-referrer" src="${esc(g.thumb)}" alt="">`;
+    badgeClass = 'img'; badgeText = 'IMG';
+  }
+
+  const opts = g.variants.map((v, i) =>
+    `<option value="${i}"${i === g.variantIdx ? ' selected' : ''}>${esc(variantLabel(v))}</option>`
+  ).join('');
+
+  const tags = [];
+  if (g.venue !== 'General / Unknown') {
+    tags.push(`<span class="tag venue">${esc(g.venue)}</span>`);
+  }
+  if (g.region !== 'General / Unknown') {
+    tags.push(`<span class="tag region">${esc(g.region)}</span>`);
+  }
+  
+  const tagsHtml = tags.length ? `<div class="venue-tags">${tags.join('')}</div>` : '';
+
+  return `
+    <article class="card${g.selected ? ' sel' : ''}" data-key="${esc(g.key)}">
+      <span class="badge ${badgeClass}">${badgeText}</span>
+      <div class="thumb">${thumb}</div>
+      <div class="meta">
+        <div class="name" title="${esc(g.name)}">${esc(g.name)}</div>
+        ${tagsHtml}
+        <div class="path" title="${esc(g.path)}">${esc(g.path)}</div>
+        ${g.variants.length > 1
+          ? `<select class="variant" title="Choose which size to keep">${opts}</select>`
+          : `<div class="path">${esc(variantLabel(g.variants[0]))}</div>`}
+        <a class="btn card-download" href="${esc(g.variants[g.variantIdx].url)}"
+           download="${esc(g.name)}" target="_blank" rel="noopener noreferrer"
+           title="Download the currently selected file">Download</a>
+      </div>
+    </article>`;
+}
+
+function visibleGroups() {
+  const q   = searchEl.value.trim().toLowerCase();
+  const cat = fCat.value;
+  const typ = fType.value;
+  const ven = fVenue.value;
+  const reg = fRegion.value;
+
+  return GROUPS.filter(g => {
+    // Type filtering logic
+    const nameLower = g.name.toLowerCase();
+    if (typ === 'menu' && !(g.type === 'document' && nameLower.endsWith('.pdf') && nameLower.includes('menu'))) return false;
+    if (typ === 'pdf' && !(g.type === 'document' && nameLower.endsWith('.pdf'))) return false;
+    if (typ === 'image' && g.type !== 'image') return false;
+    if (typ === 'archive' && !(g.type === 'document' && /\.(zip|7z|rar|tar|gz)$/i.test(nameLower))) return false;
+    if (typ === 'document' && !(g.type === 'document' && !nameLower.endsWith('.pdf') && !/\.(zip|7z|rar|tar|gz)$/i.test(nameLower))) return false;
+
+    if (reg !== 'all' && g.region !== reg) return false;
+    if (ven !== 'all' && g.venue !== ven) return false;
+    if (cat !== 'all' && g.category !== cat) return false;
+    
+    if (q) {
+      const hay = (g.name + ' ' + g.key + ' ' + g.category + ' ' + g.venue + ' ' + g.region + ' ' +
+                   g.variants.map(v => v.url).join(' ')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function render() {
+  const list = visibleGroups();
+
+  if (!list.length) {
+    content.innerHTML = `<div class="empty">No assets match the current filters.</div>`;
+    updateCounters();
+    return;
+  }
+
+  const byCat = new Map();
+  for (const g of list) {
+    if (!byCat.has(g.category)) byCat.set(g.category, []);
+    byCat.get(g.category).push(g);
+  }
+
+  const cats = [...byCat.keys()].sort(
+    (a, b) => (CAT_ORDER.indexOf(a) + 99) - (CAT_ORDER.indexOf(b) + 99) ||
+              a.localeCompare(b)
+  );
+
+  content.innerHTML = cats.map(cat => {
+    const items = byCat.get(cat);
+    const selN  = items.filter(g => g.selected).length;
+    return `
+      <details class="cat" open>
+        <summary>
+          <h2>${esc(cat)}</h2>
+          <span class="n">${items.length} asset${items.length === 1 ? '' : 's'} · ${selN} selected</span>
+          <span class="summary-actions">
+            <button data-cat-all="${esc(cat)}">All</button>
+            <button data-cat-none="${esc(cat)}">None</button>
+          </span>
+        </summary>
+        <div class="grid">${items.map(cardHTML).join('')}</div>
+      </details>`;
+  }).join('');
+
+  $$('.thumb img', content).forEach(img => {
+    img.addEventListener('error', () => {
+      const ph = document.createElement('div');
+      ph.className = 'ph';
+      ph.textContent = 'no preview';
+      img.replaceWith(ph);
+    }, { once: true });
+  });
+
+  updateCounters();
+}
+
+function updateCounters() {
+  const sel = GROUPS.filter(g => g.selected).length;
+  $('#cSel').textContent    = sel;
+  $('#cAssets').textContent = GROUPS.length;
+  $('#cUrls').textContent   = GROUPS.reduce((n, g) => n + g.variants.length, 0);
+
+  $$('details.cat').forEach(d => {
+    const cat = d.querySelector('h2').textContent;
+    const items = GROUPS.filter(g => g.category === cat);
+    if (!items.length) return;
+    const n = items.filter(g => g.selected).length;
+    const lab = d.querySelector('.n');
+    if (lab) lab.textContent = `${items.length} asset${items.length === 1 ? '' : 's'} · ${n} selected`;
+  });
+}
+
+function updateVenueOptions() {
+  const selectedRegion = fRegion.value;
+  const currentVenue = fVenue.value;
+  
+  // Get unique venues filtered by the selected region
+  const venues = [...new Set(GROUPS
+    .filter(g => selectedRegion === 'all' || g.region === selectedRegion)
+    .map(g => g.venue)
+  )].filter(v => v !== 'General / Unknown').sort();
+  
+  let html = `<option value="all">All venues</option>` +
+    venues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('') +
+    `<option value="General / Unknown">General / Unknown</option>`;
+    
+  fVenue.innerHTML = html;
+  
+  // Restore previous selection if it still exists in the new list
+  if (venues.includes(currentVenue) || currentVenue === 'all' || currentVenue === 'General / Unknown') {
+    fVenue.value = currentVenue;
+  } else {
+    fVenue.value = 'all'; // Reset if the previous venue is no longer valid
+  }
+}
+
+/* ───────────────────────── interactions ───────────────────────── */
+content.addEventListener('click', e => {
+  const allBtn  = e.target.closest('[data-cat-all]');
+  const noneBtn = e.target.closest('[data-cat-none]');
+  if (allBtn || noneBtn) {
+    e.preventDefault(); e.stopPropagation();
+    const cat = (allBtn || noneBtn).dataset.catAll || (allBtn || noneBtn).dataset.catNone;
+    const on  = !!allBtn;
+    GROUPS.filter(g => g.category === cat && isVisible(g)).forEach(g => g.selected = on);
+    render();
+    return;
+  }
+
+  const card = e.target.closest('.card');
+  if (!card) return;
+  if (e.target.closest('select, .card-download')) return;
+  const g = GROUPS.find(x => x.key === card.dataset.key);
+  if (!g) return;
+  g.selected = !g.selected;
+  card.classList.toggle('sel', g.selected);
+  updateCounters();
+});
+
+content.addEventListener('change', e => {
+  const sel = e.target.closest('select.variant');
+  if (!sel) return;
+  const card = sel.closest('.card');
+  const g = GROUPS.find(x => x.key === card.dataset.key);
+  if (!g) return;
+  g.variantIdx = +sel.value;
+  g.thumb = g.variants[0].url;
+  const download = card.querySelector('.card-download');
+  if (download) download.href = g.variants[g.variantIdx].url;
+});
+
+function isVisible(g) {
+  const q = searchEl.value.trim().toLowerCase();
+  const nameLower = g.name.toLowerCase();
+  
+  if (fType.value === 'menu' && !(g.type === 'document' && nameLower.endsWith('.pdf') && nameLower.includes('menu'))) return false;
+  if (fType.value === 'pdf' && !(g.type === 'document' && nameLower.endsWith('.pdf'))) return false;
+  if (fType.value === 'image' && g.type !== 'image') return false;
+  if (fType.value === 'archive' && !(g.type === 'document' && /\.(zip|7z|rar|tar|gz)$/i.test(nameLower))) return false;
+  if (fType.value === 'document' && !(g.type === 'document' && !nameLower.endsWith('.pdf') && !/\.(zip|7z|rar|tar|gz)$/i.test(nameLower))) return false;
+
+  if (fRegion.value !== 'all' && g.region !== fRegion.value) return false;
+  if (fVenue.value !== 'all' && g.venue !== fVenue.value) return false;
+  if (fCat.value !== 'all' && g.category !== fCat.value) return false;
+  
+  if (q && !(g.name + ' ' + g.key + ' ' + g.category + ' ' + g.venue + ' ' + g.region).toLowerCase().includes(q)) return false;
+  return true;
+}
+
+$('#selAll').onclick  = () => { visibleGroups().forEach(g => g.selected = true);  render(); };
+$('#selNone').onclick = () => { GROUPS.forEach(g => g.selected = false);           render(); };
+$('#selInv').onclick  = () => { visibleGroups().forEach(g => g.selected = !g.selected); render(); };
+
+let t;
+const debouncedRender = () => { clearTimeout(t); t = setTimeout(render, 140); };
+searchEl.addEventListener('input', debouncedRender);
+fCat.addEventListener('change', render);
+fType.addEventListener('change', render);
+fVenue.addEventListener('change', render);
+
+fRegion.addEventListener('change', () => {
+  updateVenueOptions();
+  render();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchEl) {
+    e.preventDefault(); searchEl.focus();
+  }
+  if (e.key === 'Escape') searchEl.blur();
+});
+
+/* ───────────────────────── export ───────────────────────── */
+function selectedItems() {
+  return GROUPS.filter(g => g.selected).map(g => {
+    const v = g.variants[g.variantIdx];
+    return { url: v.url, urls: g.variants.map(variant => variant.url).filter(url => url !== v.url),
+             host: g.host, path: v.path, type: g.type,
+             category: g.category, venue: g.venue, region: g.region, name: g.name };
+  });
+}
+
+function categoryPath(it) {
+  return [it.region, it.venue, it.category].map(value =>
+    String(value).replace(/\s*\/\s*/g, ' - ')
+      .replace(/[^A-Za-z0-9 .,'&()_-]+/g, '_').replace(/^[ ._-]+|[ ._-]+$/g, '').slice(0, 120)
+  );
+}
+
+function uniqueName(it, usedByFolder) {
+  const key = categoryPath(it).join('\0');
+  if (!usedByFolder.has(key)) usedByFolder.set(key, new Set());
+  const used = usedByFolder.get(key);
+  let base = decodeURIComponent(it.path.split('/').pop() || 'file');
+  base = base.replace(/[^\w.\-]+/g, '_').slice(0, 120) || 'file';
+  let name = base, i = 2;
+  while (used.has(name)) {
+    const dot = base.lastIndexOf('.');
+    name = dot > 0 ? `${base.slice(0, dot)}-${i}${base.slice(dot)}` : `${base}-${i}`;
+    i++;
+  }
+  used.add(name);
+  return name;
+}
+
+const nowStamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+function buildBash(items) {
+  const used = new Map();
+  const cmds = items.map(it => {
+    const folder = categoryPath(it).map(shellQuote).join('/');
+    const filename = shellQuote(uniqueName(it, used));
+    return `mkdir -p "$DOWNLOAD_DIR"/${folder}\ncurl -fL --retry 3 --create-dirs -o "$DOWNLOAD_DIR"/${folder}/${filename} ${shellQuote(it.url)}`;
+  });
+  return `#!/usr/bin/env bash
+# Generated ${new Date().toISOString()} — ${items.length} file(s)
+set -uo pipefail
+SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+DOWNLOAD_DIR="$SCRIPT_DIR/files"
+mkdir -p "$DOWNLOAD_DIR"
+fails=0
+${cmds.map(c => `${c} || { echo "FAILED: $?"; fails=$((fails+1)); }`).join('\n')}
+echo ""
+echo "Done. $(find "$DOWNLOAD_DIR" -type f | wc -l | tr -d ' ') file(s) in $DOWNLOAD_DIR, $fails failure(s)."
+`;
+}
+
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`;
+}
+
+function buildPS1(items) {
+  const used = new Map();
+  const cmds = items.map(it => {
+    const folder = categoryPath(it).join('/');
+    const filename = uniqueName(it, used);
+    return `$groupDir = Join-Path $dir "${folder}"
+New-Item -ItemType Directory -Force -Path $groupDir | Out-Null
+Invoke-WebRequest -Uri "${it.url}" -OutFile (Join-Path $groupDir "${filename}") -UseBasicParsing`;
+  });
+  return `# Generated ${new Date().toISOString()} — ${items.length} file(s)
+$ProgressPreference = 'SilentlyContinue'
+$dir = Join-Path $PSScriptRoot 'files'
+New-Item -ItemType Directory -Force -Path $dir | Out-Null
+${cmds.join('\n')}
+Write-Host "Done. Files saved to $dir"
+`;
+}
+
+function buildCSV(items) {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const head = 'url,host,path,type,category,venue,region,name';
+  return [head, ...items.map(i =>
+    [i.url, i.host, i.path, i.type, i.category, i.venue, i.region, i.name].map(q).join(','))].join('\n');
+}
+
+function saveBlob(text, filename, mime) {
+  const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+async function downloadSelected(items, btn) {
+  const status = $('#exportStatus');
+  status.textContent = `Downloading ${items.length} file(s)…`;
+  status.hidden = false;
+  btn.disabled = true;
+  try {
+    const response = await fetch('/api/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    });
+    const cType = response.headers.get('content-type') || '';
+    if (cType.includes('application/zip') || cType.includes('application/octet-stream')) {
+      const blob = await response.blob();
+      const stamp = nowStamp();
+      const filename = `icg-media-export-${stamp}.zip`;
+      saveBlob(blob, filename, 'application/zip');
+      const mb = (blob.size / (1024 * 1024)).toFixed(1);
+      status.textContent = `Downloaded ${filename} (${mb} MB) directly to your computer.`;
+      return;
+    }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `Server returned HTTP ${response.status}`);
+
+    const directories = Array.isArray(result.directories) ? result.directories : [];
+    const failures = Array.isArray(result.failed) ? result.failed : [];
+    const destination = directories.length ? ` Saved in ${directories.join(', ')}.` : '';
+    const failureText = failures.length
+      ? ` Failed: ${failures.slice(0, 5).map(file => `${file.name}: ${file.error}`).join('; ')}${failures.length > 5 ? `; and ${failures.length - 5} more` : ''}.`
+      : '';
+    status.textContent = `Downloaded ${result.downloaded} of ${result.requested} file(s).${destination}${failureText}`;
+  } catch (error) {
+    status.textContent = `Export failed: ${error instanceof Error ? error.message : String(error)}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove(); return ok;
+  }
+}
+
+$('#exportMenu').addEventListener('click', async e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+
+  const items = selectedItems();
+  if (!items.length) { alert('Nothing selected yet.'); return; }
+
+  const stamp = nowStamp();
+  switch (btn.dataset.act) {
+    case 'download':
+      await downloadSelected(items, btn);
+      break;
+    case 'sh': {
+      const filename = `download-${stamp}.sh`;
+      saveBlob(buildBash(items), filename, 'text/x-shellscript');
+      const status = $('#exportStatus');
+      const command = document.createElement('code');
+      command.textContent = `chmod +x "${filename}" && ./"${filename}"`;
+      status.replaceChildren(
+        document.createTextNode(`Downloaded ${filename}. Open Terminal in its folder and run `),
+        command,
+        document.createTextNode('. The script creates files/ beside itself.')
+      );
+      status.hidden = false;
+      break;
+    }
+    case 'ps1':  saveBlob(buildPS1(items),  `download-${stamp}.ps1`); break;
+    case 'wget': saveBlob(items.map(i => i.url).join('\n') + '\n', `urls-${stamp}.txt`); break;
+    case 'txt':  saveBlob(items.map(i => i.url).join('\n') + '\n', `urls-${stamp}.txt`); break;
+    case 'csv':  saveBlob(buildCSV(items), `manifest-${stamp}.csv`, 'text/csv;charset=utf-8'); break;
+    case 'copy': {
+      const ok = await copyText(items.map(i => i.url).join('\n'));
+      btn.querySelector('.sub').textContent = ok ? `Copied ${items.length} URL(s) ✔` : 'Copy failed';
+      break;
+    }
+    case 'tabs': {
+      const n = Math.min(items.length, 15);
+      if (!confirm(`Open ${n} tab(s)? Your browser may block the rest.\n\nTip: The Bash script is a better way to grab everything.`)) return;
+      items.slice(0, 15).forEach((it, i) =>
+        setTimeout(() => window.open(it.url, '_blank', 'noopener'), i * 220));
+      break;
+    }
+  }
+  $('#exportMenu').removeAttribute('open');
+});
+
+/* ───────────────────────── data loading ───────────────────────── */
+function ingest(text) {
+  const rows = parseCSV(text);
+  if (!rows.length) { alert('No rows parsed — is this the right CSV?'); return; }
+
+  GROUPS = buildGroups(rows);
+
+  // Populate Categories
+  const cats = [...new Set(GROUPS.map(g => g.category))]
+    .sort((a, b) => (CAT_ORDER.indexOf(a) + 99) - (CAT_ORDER.indexOf(b) + 99) || a.localeCompare(b));
+  
+  fCat.innerHTML = `<option value="all">All categories</option>` +
+    cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+
+  // Populate Regions
+  const regions = [...new Set(GROUPS.map(g => g.region))].filter(r => r !== 'General / Unknown').sort();
+  
+  fRegion.innerHTML = `<option value="all">All regions</option>` +
+    regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('') +
+    `<option value="General / Unknown">General / Unknown</option>`;
+
+  // Populate Venues initially (before any region is selected)
+  updateVenueOptions();
+
+  $('#loader').classList.add('hidden');
+  render();
+}
+
+async function boot() {
+  try {
+    let res = await fetch('discovered_media.csv', { cache: 'no-store' }).catch(() => null);
+    if (!res || !res.ok) {
+      res = await fetch('../inncollectiongroup.com_root/discovered_media.csv', { cache: 'no-store' });
+    }
+    if (!res.ok) throw new Error(res.status);
+    ingest(await res.text());
+  } catch {
+    const loader = $('#loader');
+    loader.addEventListener('dragover', e => { e.preventDefault(); loader.classList.add('drag'); });
+    loader.addEventListener('dragleave', () => loader.classList.remove('drag'));
+    loader.addEventListener('drop', e => {
+      e.preventDefault(); loader.classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if (f) f.text().then(ingest);
+    });
+    $('#fileInput').addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (f) f.text().then(ingest);
+    });
+  }
+}
+
+boot();
+</script>
+</body>
+</html>

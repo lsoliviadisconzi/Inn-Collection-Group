@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F&B Coordinator cross-check — Inn Collection Group</title>
+<style>
+:root{color-scheme:dark;--bg:#171513;--bg-card:#1f1c19;--bg-sub:#191714;--border:#35312c;--white:#ece7df;--gray:#8c867d;--gray-hi:#b9b3a9;--accent:#e07b4a;--ok:#85c99c;--err:#f28b82;--warn:#e6b450;--info:#8ab4f8;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--white);font:13px/1.5 var(--sans);display:flex;flex-direction:column;overflow:hidden}
+button,input,select{font:inherit}button,select{cursor:pointer}:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.mc-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:12px clamp(16px,4vw,48px);border-bottom:1px solid var(--border);background:var(--bg-card)}
+.mc-kicker{color:var(--accent);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.mc-head h1{margin:2px 0;font:600 22px var(--serif)}.mc-head p{margin:0;color:var(--gray-hi);max-width:760px}
+.nav{display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:999px}.nav a{padding:3px 12px;border-radius:999px;color:var(--gray-hi);text-decoration:none;font-size:12px}.nav a:hover{color:var(--white)}.nav a.on{background:rgba(224,123,74,.16);color:var(--white)}
+.mc-bar{flex:none;z-index:5;padding:10px clamp(16px,4vw,48px);border-bottom:1px solid var(--border);background:var(--bg-card);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.mc-bar-inner{width:min(1440px,100%);margin:0 auto;display:grid;gap:10px}
+.cov{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px}
+.cov h3{margin:0 0 4px;font:600 13px var(--serif);display:flex;justify-content:space-between;gap:8px}.cov h3 span{font:11px var(--mono);color:var(--gray)}
+.bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.06)}.bar i{display:block;height:100%}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;color:var(--gray-hi);font-size:11.5px}.legend b{font-weight:600;color:var(--white)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sel,.search{border:1px solid var(--border);background:var(--bg);color:var(--white);border-radius:6px;padding:6px 10px}.search{flex:1 1 220px;min-width:160px}.search:focus,.sel:focus{border-color:var(--info);outline:none}
+.btn{border:1px solid var(--border);background:var(--bg);color:var(--white);border-radius:6px;padding:5px 10px;font-size:12px}.btn:hover{border-color:var(--gray)}.btn.on{background:var(--accent);border-color:var(--accent);color:#111;font-weight:600}
+.seg{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}.seg .btn{border:0;border-radius:0}
+.content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:20px clamp(16px,4vw,48px)}.inner{width:min(1440px,100%);margin:0 auto}
+.sec{margin-bottom:22px}.sec>h2{margin:0 0 4px;font:600 17px var(--serif);display:flex;align-items:baseline;gap:10px}.sec>h2 small{font:11px var(--mono);color:var(--gray)}
+.cols,.rowx>summary{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:0}
+body.f-seg .cols,body.f-seg .rowx>summary{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 0}body.f-mr .cols,body.f-mr .rowx>summary{grid-template-columns:minmax(0,1.15fr) 0 minmax(0,1fr)}
+body.f-seg .c-mr,body.f-mr .c-seg{display:none}
+.cols{padding:6px 12px;color:var(--gray);font:11px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.rowx{border:1px solid var(--border);border-radius:8px;background:var(--bg-card);margin-bottom:6px}.rowx[open]{border-color:var(--gray)}
+.rowx>summary{list-style:none;cursor:pointer;padding:10px 12px;align-items:start}.rowx>summary::-webkit-details-marker{display:none}
+.rowx>summary>div{padding-right:14px;min-width:0}.rowx .req{font-weight:600}
+.b{display:inline-block;margin-bottom:3px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600}
+.b.y{background:rgba(133,201,156,.15);color:var(--ok)}.b.p{background:rgba(230,180,80,.15);color:var(--warn)}.b.n{background:rgba(242,139,130,.14);color:var(--err)}.b.h{background:rgba(138,180,248,.15);color:var(--info)}
+.cell{color:var(--gray-hi);font-size:12.5px}
+.more{padding:0 12px 12px;color:var(--gray-hi);font-size:12.5px}.more b{color:var(--white)}.next{margin-top:6px;padding:8px 10px;border-left:3px solid var(--accent);background:rgba(0,0,0,.25)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:8px 0 24px}
+.card{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:14px 16px}.card h3{margin:0 0 8px;font:600 15px var(--serif)}.card ul{margin:0;padding-left:18px;color:var(--gray-hi)}.card li{margin:0 0 5px}.card p{margin:0 0 6px;color:var(--gray-hi)}
+.empty{padding:40px;text-align:center;color:var(--gray)}
+@media(max-width:860px){body{overflow:auto;display:block;height:auto}.cols{display:none}.rowx>summary,body.f-seg .rowx>summary,body.f-mr .rowx>summary{grid-template-columns:1fr;gap:8px}.cov{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="mc-head">
+  <div>
+    <span class="mc-kicker">Inn Collection Group</span>
+    <h1>F&amp;B Coordinator — role cross-check</h1>
+    <p>Each requirement in the Harri job advert (captured 20/11/2026, full time, £28,000, closes 16 Dec 2026, 31 sites) set against what SegStudio and menu-review.html do today.</p>
+  </div>
+  <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a class="on" href="fnb-crosscheck.html" aria-current="page">F&amp;B role cross-check</a><a href="launch-readiness.html">Launch readiness</a><a href="product-data.html">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
+</header>
+<div class="mc-bar"><div class="mc-bar-inner">
+  <div class="cov" id="cov"></div>
+  <div class="tools">
+    <input id="q" class="search" type="search" placeholder="Search requirements… ( / )" autocomplete="off">
+    <select id="fs" class="sel" aria-label="Section"></select>
+    <select id="fst" class="sel" aria-label="Status"><option value="all">Any status</option><option value="gap">Not yet (either system)</option><option value="y">Covered</option><option value="p">Partial</option><option value="n">Not yet</option><option value="h">A person, not software</option></select>
+    <div class="seg" role="group" aria-label="Focus"><button class="btn on" data-f="">Both</button><button class="btn" data-f="seg">SegStudio</button><button class="btn" data-f="mr">menu-review</button></div>
+    <button class="btn" id="tg">Expand all</button><button class="btn" id="cp">Copy as Markdown</button>
+  </div>
+</div></div>
+<main class="content"><div class="inner">
+  <div class="cols"><div>Requirement (from the PDF)</div><div class="c-seg">SegStudio</div><div class="c-mr">menu-review.html</div></div>
+  <div id="list"></div>
+  <div class="notes">
+    <div class="card"><h3>Correction to the earlier notes</h3><p>None of the SegStudio documents mention EPOS, nutrition or menu engineering. §14 of business-asset-intelligence.md defers WhatsApp, Drive/Dropbox, inbound email, social import and auth, roles and approvals only.</p><p>So the one-slide map should say EPOS is <b>not addressed</b>, not “explicitly deferred”.</p></div>
+    <div class="card"><h3>In the PDF but not in the .md copy</h3><ul><li>“Product information, training materials” in the role summary</li><li>“Test products before release”</li><li>“Ensure all departments are informed on launch requirements and deadlines”</li><li>“Launched in line with commercial objectives and brand standards”</li><li>Strategic relationships paragraph and the full-lifecycle closing line</li></ul></div>
+    <div class="card"><h3>Not covered by Plan A–E either</h3><ul><li>Training materials for sites</li><li>Retail products (the advert says food, drink <i>and retail</i>)</li><li>Supplier liaison data</li><li>Menu document history: Plan A versions products, not the menu documents the advert names</li></ul></div>
+    <div class="card"><h3>How this was assessed</h3><p>From reading the uploaded SegStudio docs, the gap-closure plan, and the menu-review.html and menu_review_server.py code. Nothing was run. SegStudio ships with an empty <code>data/</code> (README), so “covered” means documented in the repository, not populated with ICG data.</p></div>
+  </div>
+</div></main>
+<script>
+const S={y:"Covered",p:"Partial",n:"Not yet",h:"A person"};
+/* [section, requirement, segStatus, segText, mrStatus, mrText, next] */
+const R=[
+["Role summary","Ensure all new food, drink and retail products are set up, communicated and ready before launch across 31 sites","p","Multi-site at brand level (appliesTo, branch menus, validFrom/validTo). No per-site readiness (asset-library §10).","p","Maps 31 venue name patterns into 7 regions and filters by them. Review only, not readiness.","Site list with per-site readiness (Plan D)."],
+["Role summary","Menus, recipes, pricing, systems, POS setup, product information, training materials and launch communications complete and on time","n","Menus and pricing exist as artwork data. Recipes, POS and training materials are absent.","n","Reviews converted menu text only.","Add training materials to the plan; they are not in A–E."],
+["Launch coordination","Administer the end-to-end launch process for food, beverage and retail introductions","p","Idempotent template publishing, batch by pack/brand (brand-packs). No launch entity.","n","No launch concept.","Launch entity with milestones and RAG (Plan B)."],
+["Launch coordination","Support seasonal menus, promotional campaigns and tactical offers","p","Festive menu, Christmas voucher, Sunday sessions, post and reel families; menus carry validity dates.","n","Reviews existing menus; no campaign planning.","Annual calendar and promotion config (Plans E, C)."],
+["Launch coordination","Support the Commercial Manager through the food strategy pipeline","n","Nothing for strategy or pipeline.","n","Nothing.","Needs sales-mix import (Plan E)."],
+["Menu & product administration","Create and maintain product databases, menu item records and launch documentation","p","Menu item records (name, description, price, dietary, branch, validity, source page) in content.menus[]. No SKU, cost or supplier.","n","Works on converted .md files and parses them on the fly. No records.","layer-studio/product/v1 (Plan A). menu-review could emit rows from its parsed blocks."],
+["Menu & product administration","Maintain version control for menu and drinks documentation","p","Dated menus; published templates are snapshots independent of the project; conflicts are recorded, not resolved (menus.md).","p","Issue decisions are keyed to the SHA-256 of each .md and stale writes are refused; duplicate-line removal is an atomic write. No history, diff or rollback. Status and notes live only in browser storage.","Server-side status plus a change log with diff."],
+["Menu & product administration","Allergen accuracy and consistency","p","14-allergen matrix design (names, abbreviations or 1–14) from typed Dish | allergens rows. Menu items carry only V, Ve, GFi, GF, DF.","p","Shows bracket tags such as (V) and (GF) as chips and finds them in the PDF. No 14-allergen model or completeness check.","Allergen field per product that generates the matrix; a quick check for dishes with none."],
+["Menu & product administration","Nutritional information","n","Not mentioned in any SegStudio doc.","n","Nothing.","Nutrition per portion (Plan A)."],
+["Menu & product administration","Recipe specifications","n","Not mentioned (“recipes” in asset-studio.md means design recipes).","n","Nothing.","Recipe, yield and ingredient costs (Plan A)."],
+["Menu & product administration","Menu pricing accuracy","p","Prices live in menu rows; verify-brand-sources compares every price token with the PDF; “never invent a price”.","p","Extracts price tokens, shows them as chips and highlights the exact figure in the PDF. No numeric validation or cross-venue comparison.","Price sanity checks as new quick checks: format, duplicates, outliers."],
+["Menu & product administration","Product codes","n","Only asset ids (ast_…).","n","Nothing.","Unique productCode (Plan A)."],
+["Systems & EPOS","Coordinate product setup across business systems for launch-day readiness","n","No EPOS or system integration; no doc mentions EPOS.","n","Nothing.","EPOS adapter (Plan C); depends on ICG’s vendor."],
+["Systems & EPOS","Create new products, build menu structures, set pricing","p","Menu → section → item structure with packages. Not an EPOS structure; pricing is text.","n","Nothing.","EPOS-importable export (Plan C)."],
+["Systems & EPOS","Configure promotions","n","Promotional artwork only.","n","Nothing.","Promotion config: name, sites, products, price rule, dates (Plan C)."],
+["Systems & EPOS","Test products before release; QA checks to ensure data accuracy","p","Artwork gates: evaluateUsage (13 codes, blockers and warnings), print safe-zone report, source-verification script. No product tests.","p","Five quick checks on extraction quality: sections, list entries, PDF present, repeated lines, odd characters. Decisions: fixed or intentional, with a note.","Pre-release harness that blocks an incomplete product by name (Plan C)."],
+["Stakeholders","Primary contact for launch readiness; liaise with F&B, Procurement, Operations, Marketing, Revenue, Commercial, Finance and suppliers","n","Single-operator localhost tool: no auth, roles, approvals or connectors (asset-library §10).","n","One reviewer; notes are personal to the browser.","Named approvals and a notification log (Plan D)."],
+["Stakeholders","Ensure all departments are informed of launch requirements and deadlines","n","Nothing.","n","Nothing.","Closest is the Plan D notification log."],
+["Stakeholders","Build strategic relationships with internal and external stakeholders","h","A person skill.","h","A person skill.","Evidence it with examples, not software."],
+["Site communication","Produce technical launch packs (spec books) and operational communications","p","Print pack (CMYK PDF, bleed, trim, crop marks, safe-zone report), prep/day-dot label, allergen matrix, menu boards. Pieces, not an assembled spec book.","n","Nothing.","Per-site spec-book PDF from product records (Plan B)."],
+["Site communication","Sites receive specifications, menu updates, pricing, prep standards and timings before launch","p","Per-brand menu register lists every price, branch, term and conflict. No delivery tracking.","n","Nothing.","Per-site delivery log (Plans B, D)."],
+["Site communication","Support field teams during rollouts and menu changes","h","A person skill.","h","A person skill.","—"],
+["Data & reporting","Maintain launch trackers and project plans","n","Batch publish is not a tracker.","p","Reviewed, flagged and to-review counts by venue and region. A review tracker only.","Launch tracker with milestones and RAG (Plan B)."],
+["Data & reporting","Maintain food data platforms so information is up to date and correct","p","Brand-pack content, menu catalogue, library health strip (verified, proposed, duplicates, orphaned, drift).","p","Keeps the converted menu corpus honest against source PDFs, which feeds any food data platform.","Promote reviewed menus into structured records."],
+["Commercial support","Deliver the annual food and beverage calendar with the Commercial Manager","n","Nothing.","n","Nothing.","Seasonal windows and campaign slots (Plan E)."],
+["Commercial support","Menu engineering projects and product performance reviews","n","Menu design only; no sales mix or GP.","n","Nothing.","Star / ploughman / puzzle / dog from sales and GP (Plan E)."],
+["Commercial support","Support pricing updates and menu changes across the estate","p","Edit content JSON, run the sync script, every surface updates and the register regenerates. Per brand.","n","Nothing.","Estate-wide price-change log."],
+["Commercial support","Launch in line with brand standards","y","Palette roles, brand-fit score and advisory warnings (brand-packs, asset-library).","n","Nothing.","—"],
+["Commercial support","Launch in line with commercial objectives","n","Nothing.","n","Nothing.","Needs targets and sales data (Plan E)."],
+["Skills & experience","Excel, Word and PowerPoint","h","Reads .docx guides; outputs PNG, PDF and HTML. No .xlsx or .pptx.","h","None.",".xlsx and .pptx export (Plan D)."],
+["Skills & experience","Comfortable with systems and large volumes of product data","p","Library index, filters and /api/assets.","p","Search and filters across the whole menu corpus.","—"],
+["Skills & experience","EPOS, menu management or inventory system experience (desirable)","n","None.","n","None.","Experience gap; Plan C is a design, not experience."],
+["Skills & experience","Costing and pricing calculations, GP and VAT (desirable)","n","Prices are text.","n","None.","Costing block with GP and VAT (Plan A)."],
+["Skills & experience","Organisation, attention to detail, deadlines, process improvement","h","Shown by how the tools are built: source references, honest limits.","h","Shown by hash-checked reviews and per-issue decisions.","—"],
+["Success measures","Products launched on time and ready for sale","n","No measure.","n","No measure.","Launch tracker (Plan B)."],
+["Success measures","Accurate system and menu setup with minimal errors","p","Review states, verification script, usage gate.","p","Quick checks and issue decisions.","Pre-release harness (Plan C)."],
+["Success measures","Launch packs delivered to sites on time","p","Packs can be produced; delivery is not tracked.","n","Nothing.","Delivery log (Plan B)."],
+["Success measures","Pricing, allergen and product data kept accurate","p","Price check against the PDF; allergen matrix. No accuracy metric.","p","Price and tag locating in the PDF. No metric.","Accuracy metric per menu."],
+["Success measures","Strong cross-functional stakeholder satisfaction","h","A person outcome.","h","A person outcome.","—"],
+["Success measures","Smooth seasonal, drinks and promotional rollout across all sites","p","Creative exists; rollout orchestration does not.","n","Nothing.","Plans B, D, E."]
+];
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const secs=[...new Set(R.map(r=>r[0]))];
+$("#fs").innerHTML='<option value="all">All sections</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join("");
+function cov(){
+  const sw=(k,label)=>{const rows=R.filter(r=>r[k]!=="h"),c={y:0,p:0,n:0};rows.forEach(r=>c[r[k]]++);const t=rows.length||1;
+    return `<div><h3>${label}<span>${rows.length} requirements, ${R.length-rows.length} person-skills excluded</span></h3><div class="bar" role="img" aria-label="${label}: ${c.y} covered, ${c.p} partial, ${c.n} not yet"><i style="width:${c.y/t*100}%;background:var(--ok)"></i><i style="width:${c.p/t*100}%;background:var(--warn)"></i><i style="width:${c.n/t*100}%;background:var(--err)"></i></div><div class="legend"><span><b>${c.y}</b> covered</span><span><b>${c.p}</b> partial</span><span><b>${c.n}</b> not yet</span></div></div>`};
+  $("#cov").innerHTML=sw(2,"SegStudio")+sw(4,"menu-review.html");
+}
+function match(r){
+  const q=$("#q").value.trim().toLowerCase(),s=$("#fs").value,st=$("#fst").value;
+  if(s!=="all"&&r[0]!==s)return false;
+  if(q&&!r.join(" ").toLowerCase().includes(q))return false;
+  if(st==="gap")return r[2]==="n"||r[4]==="n";
+  if(st!=="all")return r[2]===st||r[4]===st;
+  return true;
+}
+function render(){
+  const vis=R.map((r,i)=>[r,i]).filter(([r])=>match(r));let h="",last="";
+  for(const[r,i]of vis){
+    if(r[0]!==last){if(last)h+="</div>";last=r[0];h+=`<div class="sec"><h2>${esc(r[0])}<small>${R.filter(x=>x[0]===r[0]).length}</small></h2>`}
+    h+=`<details class="rowx" data-i="${i}"><summary><div class="req">${esc(r[1])}</div><div class="c-seg cell"><span class="b ${r[2]}">${S[r[2]]}</span><br>${esc(r[3])}</div><div class="c-mr cell"><span class="b ${r[4]}">${S[r[4]]}</span><br>${esc(r[5])}</div></summary><div class="more"><div class="next"><b>Next step:</b> ${esc(r[6])}</div></div></details>`;
+  }
+  $("#list").innerHTML=(h?h+"</div>":"")||'<div class="empty">No requirements match these filters.</div>';
+}
+function md(){
+  const l=["| Section | Requirement | SegStudio | menu-review.html | Next step |","|---|---|---|---|---|"],e=t=>t.replace(/\|/g,"\\|");
+  R.forEach(r=>l.push(`| ${e(r[0])} | ${e(r[1])} | ${S[r[2]]}: ${e(r[3])} | ${S[r[4]]}: ${e(r[5])} | ${e(r[6])} |`));return l.join("\n");
+}
+["input","change"].forEach(e=>{$("#q").addEventListener(e,render);$("#fs").addEventListener(e,render);$("#fst").addEventListener(e,render)});
+$$(".seg .btn").forEach(b=>b.onclick=()=>{$$(".seg .btn").forEach(x=>x.classList.toggle("on",x===b));document.body.classList.remove("f-seg","f-mr");if(b.dataset.f)document.body.classList.add("f-"+b.dataset.f)});
+let open=false;$("#tg").onclick=()=>{open=!open;$$(".rowx").forEach(d=>d.open=open);$("#tg").textContent=open?"Collapse all":"Expand all"};
+$("#cp").onclick=()=>navigator.clipboard?.writeText(md()).then(()=>{$("#cp").textContent="Copied";setTimeout(()=>$("#cp").textContent="Copy as Markdown",1800)});
+document.addEventListener("keydown",e=>{if(e.key==="/"&&!["INPUT","SELECT"].includes(document.activeElement.tagName)){e.preventDefault();$("#q").focus()}});
+cov();render();
+</script>
+</body>
+</html>

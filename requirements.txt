@@ -1,0 +1,2 @@
+# All dependencies in netlify/functions/api.py are built into the Python standard library.
+# This file is present for Netlify Python runtime detection.

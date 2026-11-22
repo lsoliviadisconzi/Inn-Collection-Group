@@ -1,0 +1,85 @@
+[
+  {
+    "removed_at": "2026-11-21T12:17:08+00:00",
+    "reason": "Content-identical to the kept file apart from photo URLs and captured API payload ordering",
+    "files": [
+      {
+        "outlet_id": 15904,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Ambleside_Inn/The_Ambleside_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Ambleside_Inn_full_menu/The_Ambleside_Inn_all_menus.json",
+        "sha256": "4980a5fa2c6fe22415d20d1a44a2132ef157e71ccaaf620ed08edda8380baf5a",
+        "bytes": 5105272
+      },
+      {
+        "outlet_id": 15911,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Angel_Inn/The_Angel_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Angel_Inn_full_menu/The_Angel_Inn_all_menus.json",
+        "sha256": "030f93ab78e270b1a03ba4cb36c62764b722b53afef494175100c593890c37dc",
+        "bytes": 4633146
+      },
+      {
+        "outlet_id": 15906,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Black_Swan_Inn/The_Black_Swan_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Black_Swan_Inn_full_menu/The_Black_Swan_Inn_all_menus.json",
+        "sha256": "267385053d9210ca5a5a97299beb620c54514d6dee4cac22acb03e1b430f3d77",
+        "bytes": 5539569
+      },
+      {
+        "outlet_id": 15901,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Commissioners_Quay_Inn/The_Commissioners_Quay_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Commissioners_Quay_Inn_full_menu/The_Commissioners_Quay_Inn_all_menus.json",
+        "sha256": "c2ee15ff54368d8d8dd262ee62aff831be1ec197a68a96485449cfecd274ca22",
+        "bytes": 5372649
+      },
+      {
+        "outlet_id": 15903,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Coniston_Inn/The_Coniston_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Coniston_Inn_full_menu/The_Coniston_Inn_all_menus.json",
+        "sha256": "6b8e34201b96c9b12142727d54af24ef04ca9f29129792dc433eba1ef48c50db",
+        "bytes": 4629906
+      },
+      {
+        "outlet_id": 15897,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Kings_Head_Inn/The_Kings_Head_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Kings_Head_Inn_full_menu/The_Kings_Head_Inn_all_menus.json",
+        "sha256": "4a18456b9797aa8c982bcee0ed11829e7513f5b6299874257b86b7a7a0b595df",
+        "bytes": 6010709
+      },
+      {
+        "outlet_id": 15900,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Kingslodge_Inn/The_Kingslodge_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Kingslodge_Inn_full_menu/The_Kingslodge_Inn_all_menus.json",
+        "sha256": "0f8d5ed305d379cab5edb79cc073d7321046d53be1ebfee68da6095294116752",
+        "bytes": 5117620
+      },
+      {
+        "outlet_id": 15895,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Lindisfarne_Inn/The_Lindisfarne_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Lindisfarne_Inn_full_menu/The_Lindisfarne_Inn_all_menus.json",
+        "sha256": "f8dc7769e3fd71a9d1598d69cd371701c6f9144a7867de613dafe19035f49576",
+        "bytes": 4824565
+      },
+      {
+        "outlet_id": 15905,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Pheasant/The_Pheasant_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Pheasant_full_menu/The_Pheasant_all_menus.json",
+        "sha256": "2d304e8a059cc3d0fc49aa9c60019b8d1966dc22881c6f76181341c075178303",
+        "bytes": 5118511
+      },
+      {
+        "outlet_id": 15898,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Seaton_Lane_Inn/The_Seaton_Lane_Inn_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Seaton_Lane_Inn_full_menu/The_Seaton_Lane_Inn_all_menus.json",
+        "sha256": "e879417e2c99cbe31cda735e0b0eb460989cd5f376b7d2c1ec5853a27f734486",
+        "bytes": 4829652
+      },
+      {
+        "outlet_id": 15907,
+        "removed": "inncollectiongroup.com_root/kafoodie/The_Swan/The_Swan_all_menus.json",
+        "kept": "inncollectiongroup.com_root/kafoodie/The_Swan_full_menu/The_Swan_all_menus.json",
+        "sha256": "34f545f7a628b6ae5d81ee0929a8e244c8e3056577f59549ae6938e03f467d01",
+        "bytes": 5118227
+      }
+    ]
+  }
+]

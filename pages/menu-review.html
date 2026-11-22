@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu review — Inn Collection Group</title>
+<style>
+:root{color-scheme:dark;--bg:#171513;--bg-card:#1f1c19;--bg-sub:#191714;--border:#35312c;--white:#ece7df;--gray:#8c867d;--gray-hi:#b9b3a9;--accent:#e07b4a;--ok:#85c99c;--err:#f28b82;--warn:#e6b450;--info:#8ab4f8;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--sbw:310px;--mdw:46%}
+*{box-sizing:border-box;scrollbar-width:none;-ms-overflow-style:none}*::-webkit-scrollbar{display:none;width:0;height:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--white);font:13px/1.5 var(--sans);display:flex;flex-direction:column;overflow:hidden}
+button,input,select,textarea{font:inherit}button,select{cursor:pointer}
+:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+header{flex:none;background:var(--bg-card);border-bottom:1px solid var(--border);padding:10px clamp(12px,2vw,24px)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.filters{margin-top:10px}.spacer{flex:1}
+.kicker{display:block;color:var(--accent);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.ttl{font:600 20px/1.15 var(--serif)}
+.nav{display:flex;gap:2px;margin-left:12px;padding:2px;border:1px solid var(--border);border-radius:999px}
+.nav a{padding:3px 12px;border-radius:999px;color:var(--gray-hi);text-decoration:none;font-size:12px}
+.nav a:hover{color:var(--white)}.nav a.on{background:rgba(224,123,74,.16);color:var(--white)}
+.prog{display:flex;align-items:center;gap:10px;color:var(--gray-hi);font-size:12px}
+.prog progress{width:120px;height:6px;accent-color:var(--ok)}
+.btn,.select,.search{border:1px solid var(--border);background:var(--bg);color:var(--white);border-radius:6px;padding:6px 10px;text-decoration:none;white-space:nowrap}
+.btn:hover,.select:hover{border-color:var(--gray)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#111;font-weight:600}
+.btn.sm{padding:3px 9px;font-size:12px}.btn.ok{border-color:rgba(133,201,156,.5);color:var(--ok)}.btn.bad{border-color:rgba(242,139,130,.5);color:var(--err)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.search{flex:1 1 220px;min-width:160px}.select{max-width:210px}
+.search:focus,.select:focus,textarea:focus{border-color:var(--info);outline:none}
+.stat{padding:2px 10px;border:1px solid var(--border);border-radius:999px;color:var(--gray-hi);font-size:12px}.stat b{color:var(--white);font-weight:600}
+body.min .filters,body.min .prog,body.min .facts,body.min #review{display:none}
+.layout{flex:1;min-height:0;display:flex}
+.sidebar{flex:none;width:var(--sbw);overflow:auto;background:var(--bg-sub)}
+.layout.sbcol .sidebar,.layout.sbcol #rzSide{display:none}
+.rz{flex:0 0 6px;cursor:col-resize;border-left:1px solid var(--border);transition:background .15s}.rz:hover,.rz.on{background:var(--accent)}
+.lh{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg-sub);border-bottom:1px solid var(--border);color:var(--gray);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.mrow{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);border-left:3px solid transparent;padding:10px 14px;color:var(--white)}
+.mrow:hover{background:var(--bg-card)}.mrow.selected{background:var(--bg-card);border-left-color:var(--accent)}
+.rt{display:block;font-weight:600;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere}.rv{display:block;color:var(--gray-hi);font-size:11px;margin-top:2px}
+.rm{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px;color:var(--gray);font-size:11px}
+.pill{padding:1px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--gray-hi);font-size:10.5px}.pill.reviewed{background:rgba(133,201,156,.15);color:var(--ok)}.pill.flagged{background:rgba(242,139,130,.15);color:var(--err)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding:12px clamp(12px,2vw,20px)}
+.empty{margin:auto;padding:40px;color:var(--gray);text-align:center}
+h1{font:600 20px/1.25 var(--serif);margin:0;overflow-wrap:anywhere}.fn{color:var(--gray);font:12px var(--mono)}
+.fact{padding:2px 10px;border:1px solid var(--border);border-radius:999px;color:var(--gray-hi);font-size:12px}.fact b{color:var(--white);font-weight:600}
+#review{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,340px);gap:10px}#review.col{display:none}
+.card{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:12px 14px}
+.card h2{font:600 14px var(--serif);margin:0 0 8px;color:var(--white)}
+.check{padding:2px 9px;border-radius:999px;font-size:11.5px;display:inline-block;margin:0 5px 5px 0;border:1px solid var(--border);background:none;color:var(--gray-hi)}
+.check.warn{color:var(--warn);border-color:rgba(230,180,80,.4);background:rgba(230,180,80,.07)}.check.ok{color:var(--ok);border-color:rgba(133,201,156,.35)}
+.check.issue{cursor:pointer;vertical-align:top}.check.issue:hover{filter:brightness(1.2)}.check.resolved{color:var(--ok);border-color:rgba(133,201,156,.35);background:none}
+#pdfReview{flex:none;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg-sub)}
+#pdfReview .sub{display:block;color:var(--gray);font-size:11px;margin-bottom:4px}.sub{color:var(--gray);font-size:12px}
+dialog.issue-dialog{width:min(720px,calc(100vw - 28px));max-height:min(80vh,760px);padding:0;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--white);box-shadow:0 24px 80px #000b}
+dialog.issue-dialog::backdrop{background:#0009;backdrop-filter:blur(2px)}
+.issue-top{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border)}.issue-top h2{flex:1;margin:0;font:600 17px var(--serif)}
+.issue-content{padding:14px 18px;max-height:calc(80vh - 150px);overflow:auto}.issue-content p{margin:0 0 10px;color:var(--gray-hi)}
+.issue-content ul{padding-left:22px;margin:8px 0}.issue-content li{margin:0 0 10px}
+.issue-content code{display:block;white-space:pre-wrap;overflow-wrap:anywhere;background:#111;color:#e8e4de;border-left:3px solid var(--border);border-radius:4px;padding:7px 9px;margin:4px 0;font:12px/1.5 var(--mono)}
+.md code{background:#111;color:#e8e4de;padding:1px 5px;border-radius:3px;font:12px var(--mono)}
+.issue-content label{display:flex;align-items:flex-start;gap:7px;margin-top:6px;color:var(--gray-hi);font-size:12px}.issue-content input[type=checkbox]{margin-top:3px;accent-color:var(--accent)}
+.issue-note{margin-top:12px}.issue-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--border)}
+textarea{width:100%;resize:vertical;min-height:50px;max-height:120px;background:var(--bg);color:var(--white);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.ss{font-size:11px;color:var(--gray)}
+.panes{flex:1;min-height:0;display:flex}
+.pane{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);overflow:hidden}
+#paneMd{flex:0 0 var(--mdw)}#panePdf{flex:1}
+.pane.col{flex:0 0 36px!important}.pane.col .pb,.pane.col .pbtns,.pane.col #pdfReview{display:none}
+.pane.col .ph{writing-mode:vertical-rl;padding:12px 6px;height:100%;cursor:pointer}.pane.col .ph h2{margin:0}
+.panes .rz{border:0;flex:0 0 12px;position:relative;background:none}
+.panes .rz::after{content:"";position:absolute;left:4px;top:50%;height:44px;margin-top:-22px;width:4px;border-radius:4px;background:var(--gray);opacity:.5;box-shadow:-3px 0 var(--gray),3px 0 var(--gray)}
+.panes .rz:hover::after,.panes .rz.on::after{background:var(--accent);box-shadow:-3px 0 var(--accent),3px 0 var(--accent);opacity:1}
+.panes.c1 .rz{display:none}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border)}.ph h2{font:600 14px var(--serif);margin:0}.pbtns{display:flex;gap:4px;align-items:center}
+.pb{flex:1;min-height:0;overflow:auto;padding:12px 16px}
+.md{line-height:1.6;overflow-wrap:anywhere}
+.md h1{font:600 20px var(--serif);margin:4px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.md h2{font:600 15px var(--serif);margin:20px 0 6px}.md h3,.md h4{font-size:13px;margin:14px 0 5px}
+.md p{margin:5px 0;color:var(--gray-hi)}.md ul{padding-left:22px;margin:6px 0}.md strong{color:var(--white)}
+.md [data-b]{cursor:pointer;border-radius:4px;transition:background .12s}.md [data-b]:hover{background:rgba(138,180,248,.1)}
+.md .sel{background:rgba(224,123,74,.16)!important;box-shadow:-3px 0 0 var(--accent)}
+.md li{list-style:none;margin-left:-18px;padding:4px 8px;border-radius:6px}.md li::marker{content:""}
+.hd{display:flex;justify-content:space-between;gap:12px;font-weight:600}.pr{color:var(--warn);font-weight:600;white-space:nowrap}.ds{color:var(--gray-hi);font-size:12.5px}
+.src{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 var(--mono);color:var(--gray-hi);margin:0}
+#pdfBody{padding:8px;background:#0f0e0d;position:relative}
+.pg{position:relative;margin:0 auto 10px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.5)}.pg canvas{display:block;width:100%;height:100%}
+.tl{position:absolute;inset:0;overflow:hidden;line-height:1}.tl span,.tl br{position:absolute;white-space:pre;color:transparent;cursor:pointer;transform-origin:0 0}
+.tl span:hover{background:rgba(138,180,248,.2)}.tl ::selection{background:rgba(138,180,248,.35)}
+.hl{position:absolute;pointer-events:none;background:rgba(240,120,50,.28);outline:2px solid rgba(205,91,28,.9);border-radius:3px;mix-blend-mode:multiply;animation:pulse .9s ease-out 2}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,123,74,.8)}100%{box-shadow:0 0 0 14px rgba(224,123,74,0)}}
+@media(prefers-reduced-motion:reduce){.hl{animation:none}}
+.pdf-frame{width:100%;height:100%;border:0;background:#0f0e0d}.note{color:var(--gray);text-align:center;padding:30px}
+#insp{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:8px 12px;font-size:12px}
+#insp .t{color:var(--gray);flex:1 1 100%;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{padding:1px 9px;border-radius:999px;border:1px solid var(--border);color:var(--gray-hi)}
+.chip.price{border-color:rgba(230,180,80,.45);color:var(--warn)}.chip.tag{border-color:rgba(133,201,156,.4);color:var(--ok)}.chip.bad{border-color:rgba(242,139,130,.5);color:var(--err)}.chip.hit{border-color:rgba(138,180,248,.45);color:var(--info)}
+.toast{position:fixed;right:16px;bottom:16px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);color:var(--gray-hi);font-size:12px}
+.hidden{display:none!important}
+@media(max-width:860px){body{overflow:auto;display:block;height:auto}.layout{display:block}.sidebar{width:auto;max-height:34vh}#rzSide,.panes .rz{display:none}.main{display:block}.panes{display:block}.pane{margin-bottom:10px;flex:none!important;height:70vh}#review{grid-template-columns:1fr}.nav{margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <button class="btn sm" id="bSide" title="Toggle sidebar ( [ )" aria-label="Toggle sidebar">☰</button>
+    <div><span class="kicker">Inn Collection Group</span><div class="ttl">Menu review</div></div>
+    <nav class="nav" aria-label="Pages"><a class="on" href="menu-review.html" aria-current="page">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a href="launch-readiness.html">Launch readiness</a><a href="product-data.html">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
+    <span class="spacer"></span>
+    <div class="prog"><progress id="reviewProgress" value="0" max="1" aria-label="Reviewed menus"></progress><span class="stat"><b id="reviewedCount">0</b> of <b id="totalCount">—</b> reviewed</span><span class="stat"><b id="flaggedCount">0</b> flagged</span></div>
+    <button class="btn sm" id="bMin" title="Minimal view ( m )">Minimal</button>
+  </div>
+  <div class="row filters">
+    <input id="search" class="search" type="search" placeholder="Search menus, venues or filename… ( / )" autocomplete="off">
+    <select id="regionFilter" class="select" aria-label="Region"><option value="all">All regions</option></select>
+    <select id="venueFilter" class="select" aria-label="Venue"><option value="all">All venues</option></select>
+    <select id="kindFilter" class="select" aria-label="Menu type"><option value="all">All menu types</option><option>Food</option><option>Drinks</option><option>Sunday</option><option>Events</option><option>Other</option></select>
+    <select id="statusFilter" class="select" aria-label="Review status"><option value="all">All review statuses</option><option value="pending">Needs review</option><option value="reviewed">Reviewed</option><option value="flagged">Flagged</option></select>
+    <button class="btn sm" id="bReset" title="Clear filters">Clear</button>
+    <span id="visibleCount" class="stat">Loading…</span>
+  </div>
+</header>
+<div class="layout" id="layout">
+  <aside class="sidebar" aria-label="Menus">
+    <div class="lh"><span>MENU FILES</span><span id="listCount">—</span></div>
+    <div id="menuList"></div>
+  </aside>
+  <div class="rz" id="rzSide" title="Drag to resize"></div>
+  <main class="main">
+    <div id="head" class="row"></div>
+    <div class="row facts" id="facts"></div>
+    <section id="review"></section>
+    <div class="panes" id="panes">
+      <section class="pane" id="paneMd">
+        <div class="ph" data-col="md"><h2>Extracted markdown</h2><div class="pbtns"><button class="btn sm on" data-view="rendered">Rendered</button><button class="btn sm" data-view="source">Source</button><button class="btn sm" data-toggle="md" title="Collapse">–</button></div></div>
+        <div class="pb" id="mdBody"><div class="empty">Loading menus...</div></div>
+      </section>
+      <div class="rz" id="rzPane" title="Drag to resize"></div>
+      <section class="pane" id="panePdf">
+        <div class="ph" data-col="pdf"><h2>Original PDF</h2><div class="pbtns"><button class="btn sm" id="zOut">−</button><button class="btn sm" id="zIn">+</button><a class="btn sm" id="pdfOpen" target="_blank" rel="noopener">Open PDF</a><button class="btn sm" data-toggle="pdf" title="Collapse">–</button></div></div>
+        <div id="pdfReview"></div>
+        <div class="pb" id="pdfBody"></div>
+      </section>
+    </div>
+    <div id="insp" class="hidden"></div>
+  </main>
+</div>
+<div id="toast" class="toast hidden" role="status"></div>
+<dialog id="issueDialog" class="issue-dialog" aria-labelledby="issueTitle">
+  <div class="issue-top"><h2 id="issueTitle"></h2><button class="btn sm" type="button" id="issueClose" aria-label="Close issue details">Close</button></div>
+  <div class="issue-content" id="issueContent"></div>
+  <div class="issue-actions">
+    <button class="btn" type="button" data-save-issue="open">Keep open</button>
+    <button class="btn" type="button" data-save-issue="intentional">Mark intentional</button>
+    <button class="btn ok" type="button" data-save-issue="fixed">Mark fixed</button>
+    <button class="btn bad hidden" type="button" id="removeDuplicateLines">Remove selected duplicate lines</button>
+  </div>
+</dialog>
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+const qs=n=>`?name=${encodeURIComponent(n)}`,clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v&&typeof v==="object"&&!Array.isArray(v)?{...d,...v}:d}catch(e){return d}};
+let menus=[],current=null,md="",blocks=[],sel=null,saveT,toastT,pdfTok=0,pdfDoc=null,pdfPages=[],pdfText=[],pdfZoom=1,pdfOK=false,pdfFailed=false,pdfW=0,issueHash="",issueReviews={},openIssueId=null;
+let reviews=load("inn-menu-reviews",{});
+const UI=load("inn-menu-ui",{sbw:310,mdw:46,sbCol:false,mdCol:false,pdfCol:false,revCol:false,min:false});
+const saveUI=()=>{try{localStorage.setItem("inn-menu-ui",JSON.stringify(UI))}catch(e){}};
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.remove("hidden");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.add("hidden"),4000)}
+
+/* ---------- venue & region (same mapping as discovered-media.html) ---------- */
+const VEN=[[/black swan/,"The Black Swan"],[/kings ?lodge/,"The Kingslodge Inn"],[/seaburn/,"The Seaburn Inn"],[/ambleside/,"The Ambleside Inn"],[/coniston/,"The Coniston Inn"],[/bamburgh/,"The Bamburgh Castle Inn"],[/midland/,"The Midland"],[/pheasant/,"The Pheasant Inn"],[/seaton/,"The Seaton Lane Inn"],[/kings? head|king s head/,"The King's Head Inn"],[/swan/,"The Swan, Grasmere"],[/temperance/,"The Temperance Inn"],[/ullswater/,"The Ullswater Inn"],[/wateredge/,"The Wateredge Inn"],[/waterhead/,"The Waterhead Inn"],[/wordsworth/,"The Wordsworth"],[/bulls? head|bull s head/,"The Bull's Head Inn"],[/swallow/,"The Swallow Falls Inn"],[/harrogate/,"The Harrogate Inn"],[/knaresborough/,"The Knaresborough Inn"],[/northallerton/,"The Northallerton Inn"],[/ripon/,"The Ripon Inn"],[/stables/,"The Stables, Whitby"],[/angel/,"The Angel Inn"],[/hogs? head|hog s head/,"The Hogs Head Inn"],[/lindisfarne/,"The Lindisfarne Inn"],[/commissioners/,"The Commissioners Quay Inn"],[/ amble /,"The Amble Inn"],[/offshore/,"Offshore"],[/dean ?court/,"Dean Court"],[/tynemouth/,"The Tynemouth Castle Inn"]];
+const REG={"The Kingslodge Inn":"County Durham","The Seaton Lane Inn":"County Durham","The Midland":"Lancashire","Offshore":"Lancashire","The Seaburn Inn":"Tyne and Wear","The Tynemouth Castle Inn":"Tyne and Wear","The Ambleside Inn":"Lake District","The Angel Inn":"Lake District","The Coniston Inn":"Lake District","The Pheasant Inn":"Lake District","The Swan, Grasmere":"Lake District","The Temperance Inn":"Lake District","The Ullswater Inn":"Lake District","The Wateredge Inn":"Lake District","The Waterhead Inn":"Lake District","The Wordsworth":"Lake District","The Bull's Head Inn":"North Wales","The Swallow Falls Inn":"North Wales","The Amble Inn":"Northumberland","The Bamburgh Castle Inn":"Northumberland","The Commissioners Quay Inn":"Northumberland","The Hogs Head Inn":"Northumberland","The Lindisfarne Inn":"Northumberland","Dean Court":"Yorkshire","The Black Swan":"Yorkshire","The Harrogate Inn":"Yorkshire","The Knaresborough Inn":"Yorkshire","The Northallerton Inn":"Yorkshire","The Ripon Inn":"Yorkshire","The King's Head Inn":"Yorkshire","The Stables, Whitby":"Yorkshire"};
+const UNK="General / Unknown";
+function venueOf(name){const n=" "+name.replace(/\.md$/i,"").toLowerCase().replace(/[^a-z0-9]+/g," ")+" ";for(const[r,v]of VEN)if(r.test(n))return v;return UNK}
+const displayName=n=>n.replace(/\.md$/i,"").replace(/-x3a/ig,":").replace(/-/g," ");
+
+/* ---------- layout: resize / collapse / minimal ---------- */
+function applyUI(){
+  const r=document.documentElement.style;r.setProperty("--sbw",UI.sbw+"px");r.setProperty("--mdw",UI.mdw+"%");
+  $("#layout").classList.toggle("sbcol",UI.sbCol);document.body.classList.toggle("min",UI.min);
+  $("#paneMd").classList.toggle("col",UI.mdCol);$("#panePdf").classList.toggle("col",UI.pdfCol);
+  $("#panes").classList.toggle("c1",UI.mdCol||UI.pdfCol);$("#review").classList.toggle("col",UI.revCol);
+  $("#bMin").classList.toggle("on",UI.min);$("#bSide").classList.toggle("on",!UI.sbCol);
+  const t=$("#bRev");if(t)t.textContent=UI.revCol?"Show review ▾":"Hide review ▴";
+}
+function drag(el,fn){el.addEventListener("pointerdown",e=>{e.preventDefault();el.setPointerCapture(e.pointerId);el.classList.add("on");const mv=ev=>fn(ev);el.addEventListener("pointermove",mv);el.addEventListener("pointerup",()=>{el.removeEventListener("pointermove",mv);el.classList.remove("on");saveUI()},{once:true})})}
+drag($("#rzSide"),e=>{UI.sbw=clamp(e.clientX-$("#layout").getBoundingClientRect().left,180,640);applyUI()});
+drag($("#rzPane"),e=>{const r=$("#panes").getBoundingClientRect();UI.mdw=clamp((e.clientX-r.left)/r.width*100,15,85);applyUI()});
+$("#bSide").onclick=()=>{UI.sbCol=!UI.sbCol;applyUI();saveUI()};
+$("#bMin").onclick=()=>{UI.min=!UI.min;UI.sbCol=UI.min;UI.revCol=UI.min;applyUI();saveUI()};
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-toggle]");if(t){UI[t.dataset.toggle+"Col"]=true;applyUI();saveUI();return}
+  const h=e.target.closest(".ph[data-col]");if(h&&h.parentElement.classList.contains("col")){UI[h.dataset.col+"Col"]=false;applyUI();saveUI()}
+});
+
+/* ---------- reviews ---------- */
+const reviewFor=n=>reviews[n]&&typeof reviews[n]==="object"?reviews[n]:{status:"pending",note:""};
+function saveReviews(){try{localStorage.setItem("inn-menu-reviews",JSON.stringify(reviews));const s=$("#saveState");if(s)s.textContent="Saved in this browser";renderList();counts()}catch(e){toast("Could not save: "+e.message)}}
+function setStatus(n,s){reviews[n]={...reviewFor(n),status:s};saveReviews();renderHead()}
+function counts(){const rp=$("#reviewProgress");if(rp){rp.max=menus.length||1;rp.value=menus.filter(m=>reviewFor(m.name).status==="reviewed").length}$("#reviewedCount").textContent=menus.filter(m=>reviewFor(m.name).status==="reviewed").length;$("#flaggedCount").textContent=menus.filter(m=>reviewFor(m.name).status==="flagged").length}
+
+/* ---------- filters + list ---------- */
+function visibleMenus(){
+  const q=$("#search").value.trim().toLowerCase(),k=$("#kindFilter").value,s=$("#statusFilter").value,rg=$("#regionFilter").value,v=$("#venueFilter").value;
+  return menus.filter(m=>(k==="all"||m.kind===k)&&(s==="all"||reviewFor(m.name).status===s)&&(rg==="all"||m.region===rg)&&(v==="all"||m.venue===v)&&(!q||`${m.name} ${m.kind} ${m.venue} ${m.region}`.toLowerCase().includes(q)));
+}
+function fillSelects(){
+  const rg=$("#regionFilter").value,v=$("#venueFilter").value;
+  const cnt=(arr,f)=>arr.reduce((o,m)=>(o[f(m)]=(o[f(m)]||0)+1,o),{});
+  const rc=cnt(menus,m=>m.region),vc=cnt(menus.filter(m=>rg==="all"||m.region===rg),m=>m.venue);
+  $("#regionFilter").innerHTML='<option value="all">All regions</option>'+Object.keys(rc).sort((a,b)=>a===UNK?1:b===UNK?-1:a.localeCompare(b)).map(r=>`<option value="${esc(r)}">${esc(r)} (${rc[r]})</option>`).join("");
+  $("#venueFilter").innerHTML='<option value="all">All venues</option>'+Object.keys(vc).sort((a,b)=>a===UNK?1:b===UNK?-1:a.localeCompare(b)).map(x=>`<option value="${esc(x)}">${esc(x)} (${vc[x]})</option>`).join("");
+  $("#regionFilter").value=rc[rg]?rg:"all";$("#venueFilter").value=vc[v]?v:"all";
+}
+function renderList(){
+  if(!menus.length)return;const vis=visibleMenus();
+  $("#visibleCount").textContent=`${vis.length} shown`;$("#listCount").textContent=`${vis.length} / ${menus.length}`;
+  $("#menuList").innerHTML=vis.map(m=>{const s=reviewFor(m.name).status,l=s==="reviewed"?"Reviewed":s==="flagged"?"Flagged":"To review";
+    return `<button class="mrow${m.name===current?" selected":""}" data-name="${esc(m.name)}"><span class="rt">${esc(displayName(m.name))}</span><span class="rv">${m.venue===UNK?"Group / general":esc(m.venue)+" · "+esc(m.region)}</span><span class="rm"><span>${esc(m.kind)}${m.hasPdf?" · PDF":""}</span><span class="pill ${s}">${l}</span></span></button>`}).join("")||'<div class="empty">No menus match these filters.</div>';
+}
+function onFilter(){renderList();const v=visibleMenus();if(v.length&&!v.some(m=>m.name===current))openMenu(v[0].name);if(!v.length)$("#mdBody").innerHTML='<div class="empty">No menus match these filters.</div>'}
+$("#search").oninput=onFilter;$("#kindFilter").onchange=onFilter;$("#statusFilter").onchange=onFilter;
+$("#regionFilter").onchange=()=>{fillSelects();onFilter()};$("#venueFilter").onchange=onFilter;
+$("#bReset").onclick=()=>{$("#search").value="";["kind","status","region","venue"].forEach(k=>$("#"+k+"Filter").value="all");fillSelects();onFilter()};
+
+/* ---------- markdown → blocks ---------- */
+const tok=s=>[...String(s).matchAll(/[a-z0-9]+(?:['’][a-z]+)?/gi)].map(m=>({w:m[0].toLowerCase().replace(/['’]/g,""),s:m.index,e:m.index+m[0].length}));
+const plain=s=>s.replace(/\\(.)/g,"$1").replace(/[*`]/g,"").trim();
+function inline(v){return esc(v).replace(/\\([\\`*_{}\[\]()#+\-.!])/g,(m,c)=>"&#"+c.charCodeAt(0)+";").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*([^*]+)\*/g,"$1<em>$2</em>")}
+const PRICE_RE=/[£€$]\s?\d+(?:[.,]\d{1,2})?|\+?\b\d+\.\d{2}\b/g;
+function parse(text){
+  const out=[];let page=0,cols=[],prev=null;
+  for(const line of text.replace(/\r/g,"").split("\n")){
+    const dm=line.match(/^\s*\x3c!--\s*(page|cols|source)\s*:\s*(.*?)\s*--\x3e\s*$/i);
+    if(dm){const k=dm[1].toLowerCase();if(k==="page")page=+dm[2]||0;if(k==="cols")cols=dm[2].split("|").map(x=>x.trim()).filter(Boolean);continue}
+    if(!line.trim()){prev=null;continue}
+    const h=line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/),li=line.match(/^(\s*)(?:[-*+]|\d+[.)])\s+(.+)$/);
+    if(prev&&!h&&li&&li[1].length>=2&&prev.type==="li"){prev.descs.push(li[2]);continue}
+    if(prev&&!h&&!li&&/^\s+\S/.test(line)){prev.descs.length?prev.descs.push(prev.descs.pop()+" "+line.trim()):prev.raw+=" "+line.trim();continue}
+    const b={i:out.length,type:h?"h":li?"li":"p",lvl:h?h[1].length:0,raw:h?h[2]:li?li[2]:line.trim(),descs:[],page,cols:[...cols]};
+    if(h&&b.lvl<=3)cols=[];
+    out.push(b);prev=b.type==="h"?null:b;
+  }
+  let sec="",last=null;
+  for(const b of out){
+    if(b.type==="li"){const parts=b.raw.split(/\s+·\s+/);b.name=parts[0];b.pp=parts.slice(1);
+      b.text=plain([b.name,...b.pp,...b.descs].join(" "));
+      b.tags=[...new Set((b.name.match(/\(([A-Z, ]+)\)/g)||[]).flatMap(t=>t.slice(1,-1).split(/,\s*/)))];b.chef=b.name.includes("♛");
+      b.prices=[...new Set([...b.pp,...(([b.name,...b.descs].join(" ")).match(PRICE_RE)||[])])];
+      b.group=last&&!/^\*\*/.test(b.raw)&&!b.descs.length&&b.pp.length===0&&last.type==="li"?last.group:b.i;}
+    else{b.text=plain([b.raw,...b.descs].join(" "));b.group=b.i}
+    b.tokens=tok(b.text).map(t=>t.w);if(b.type==="h")sec=b.text;b.section=sec;last=b;
+  }
+  return out;
+}
+function renderMd(){
+  let html="",inList=false;
+  for(const b of blocks){
+    if(b.type==="li"&&!inList){html+="<ul>";inList=true}
+    if(b.type!=="li"&&inList){html+="</ul>";inList=false}
+    html+=b.type==="h"?`<h${b.lvl} data-b="${b.i}">${inline(b.raw)}</h${b.lvl}>`:b.type==="li"?`<li data-b="${b.i}"><div class="hd"><span>${inline(b.name)}</span>${b.pp.length?`<span class="pr">${esc(b.pp.map((p,k)=>(b.cols[k]&&b.pp.length>1?b.cols[k]+" ":"")+p).join(" · "))}</span>`:""}</div>${b.descs.map(d=>`<div class="ds">${inline(d)}</div>`).join("")}</li>`:`<p data-b="${b.i}">${inline(b.raw)}</p>`;
+  }
+  return html+(inList?"</ul>":"");
+}
+
+/* ---------- header / detail ---------- */
+function analyze(text,hasPdf){
+  const L=text.split(/\r?\n/),heads=L.filter(l=>/^#{1,6}\s/.test(l)).length,items=L.filter(l=>/^\s*[-*+]\s+/.test(l)).length,words=text.trim().split(/\s+/).filter(Boolean).length;
+  const lineGroups=new Map(),unusualLines=[];
+  L.forEach((line,i)=>{
+    const key=line.trim().toLowerCase();
+    if(key.length>12){if(!lineGroups.has(key))lineGroups.set(key,{text:line.trim(),lines:[]});lineGroups.get(key).lines.push(i+1)}
+    const unusual=(line.match(/\uFFFD/g)||[]).length+(line.match(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g)||[]).length;
+    if(unusual)unusualLines.push({line:i+1,text:line,count:unusual});
+  });
+  const repeatedLines=[...lineGroups.values()].filter(g=>g.lines.length>1).map(g=>({...g,duplicateLines:g.lines.slice(1)}));
+  const dup=repeatedLines.reduce((n,g)=>n+g.duplicateLines.length,0),odd=unusualLines.reduce((n,l)=>n+l.count,0);
+  return{heads,items,words,repeatedLines,unusualLines,checks:[
+    {id:"headings",l:heads?`${heads} sections`:"No section headings",w:!heads},
+    {id:"list_entries",l:items?`${items} list entries`:"No list entries",w:!items},
+    {id:"pdf_missing",l:hasPdf?"PDF available":"PDF missing",w:!hasPdf},
+    {id:"repeated_lines",l:dup?`${dup} repeated lines`:"No repeated lines",w:dup>0},
+    {id:"unusual_chars",l:odd?`${odd} unusual characters`:"No unusual characters",w:odd>0}
+  ]};
+}
+const issueStatus=id=>issueReviews[id]?.status||"open";
+function checkMarkup(c){
+  if(!c.w)return`<span class="check ok">OK: ${esc(c.l)}</span>`;
+  const status=issueStatus(c.id),label=status==="fixed"?" · Fixed":status==="intentional"?" · Intentional":"";
+  return`<button class="check warn issue${status!=="open"?" resolved":""}" type="button" data-issue="${c.id}">Review: ${esc(c.l)}${label}</button>`;
+}
+function renderHead(){
+  const m=menus.find(x=>x.name===current);if(!m)return;const r=reviewFor(m.name),a=analyze(md,m.hasPdf);
+  $("#head").innerHTML=`<div><h1>${esc(displayName(m.name))}</h1><div class="fn">${esc(m.name)} · ${esc(m.kind)}${m.venue!==UNK?" · "+esc(m.venue)+" · "+esc(m.region):""}</div></div><span class="spacer"></span><button class="btn sm" id="bRev"></button><button class="btn sm" id="prev">Previous</button><button class="btn sm" id="next">Next</button>`;
+  $("#facts").innerHTML=`<span class="fact"><b>${a.heads}</b> sections</span><span class="fact"><b>${a.items}</b> list entries</span><span class="fact"><b>${a.words}</b> words</span><span class="fact"><b>${Math.max(1,Math.ceil(m.bytes/1024))} KB</b> markdown</span>`;
+  $("#review").innerHTML=`<div class="card"><h2>Quick checks — signals to inspect, not automatic approvals</h2>${a.checks.map(checkMarkup).join("")}<div class="row" style="margin-top:6px"><button class="btn ok sm" data-status="reviewed">Mark reviewed</button><button class="btn bad sm" data-status="flagged">Flag for follow-up</button><button class="btn sm" data-status="pending">Reset</button><span class="stat">Status: <b>${r.status==="reviewed"?"Reviewed":r.status==="flagged"?"Flagged":"Needs review"}</b></span></div></div><div class="card"><h2>Reviewer notes</h2><textarea id="notes" placeholder="Capture corrections or follow-up...">${esc(r.note||"")}</textarea><span id="saveState" class="ss">Saved in this browser</span></div>`;
+  const warnings=a.checks.filter(c=>c.w);
+  $("#pdfReview").innerHTML=warnings.length?`<span class="sub">Review findings · select one for details, locations, and actions</span>${warnings.map(checkMarkup).join("")}`:'<span class="sub">No current review findings</span>';
+  $("#prev").onclick=()=>step(-1);$("#next").onclick=()=>step(1);$("#bRev").onclick=()=>{UI.revCol=!UI.revCol;applyUI();saveUI()};
+  $$("[data-status]",$("#review")).forEach(b=>b.onclick=()=>setStatus(current,b.dataset.status));
+  $$("#review [data-issue],#pdfReview [data-issue]").forEach(b=>b.onclick=()=>openIssue(b.dataset.issue));
+  $("#notes").oninput=e=>{$("#saveState").textContent="Unsaved changes...";clearTimeout(saveT);const n=current,v=e.target.value;saveT=setTimeout(()=>{reviews[n]={...reviewFor(n),note:v};saveReviews()},350)};
+  applyUI();
+}
+const ISSUE_HELP={
+  headings:["No section headings were found. Check whether the extracted menu lost its section structure.","Add Markdown headings only if they are present in the source menu."],
+  list_entries:["No Markdown list entries were found. Menu items may have been extracted as plain text.","Compare the extracted text with the original PDF before editing the Markdown."],
+  pdf_missing:["No matching original PDF is available in the server's extracted-to-md documents folder.","Add or restore the matching PDF if it should be available for comparison."],
+  repeated_lines:["The same non-empty line appears more than once in the extracted Markdown. Repetition can be a real menu item, but often indicates duplicate extraction.","Select the later copies to remove them from this menu's Markdown file. The original PDF is not changed."],
+  unusual_chars:["Replacement or control characters were found in the extracted Markdown. These can indicate a text-encoding or extraction problem.","Review the affected lines against the PDF, then edit the Markdown or mark the characters as intentional."]
+};
+function openIssue(issueId){
+  const m=menus.find(x=>x.name===current),a=analyze(md,m?.hasPdf??false),check=a.checks.find(c=>c.id===issueId);
+  if(!m||!check)return;
+  openIssueId=issueId;
+  const [explanation,remedy]=ISSUE_HELP[issueId],state=issueReviews[issueId],status=state?.status||"open";
+  $("#issueTitle").textContent=check.l;
+  let detail="";
+  if(issueId==="repeated_lines"){
+    detail=`<ul>${a.repeatedLines.map((group,index)=>{
+      const location=pdfOK?findInPdf(group.text.split(/\s+/).slice(0,14).join(" "),0):null;
+      const pdfLocation=location?`PDF text match: page ${location.page+1}`:pdfFailed?"PDF text locations unavailable":m.hasPdf?"Looking up PDF page…":"No matching PDF available";
+      return`<li><strong>Markdown lines ${group.lines.join(", ")}</strong> · <span data-pdf-location="${index}">${esc(pdfLocation)}</span><code>${esc(group.text)}</code>${group.duplicateLines.map(line=>`<label><input type="checkbox" name="removeLine" value="${line}" checked> Remove this repeated copy (line ${line})</label>`).join("")}</li>`;
+    }).join("")}</ul><p>${esc(remedy)}</p>`;
+  }else if(issueId==="unusual_chars"){
+    detail=`<ul>${a.unusualLines.map(row=>`<li>Markdown line ${row.line} · ${row.count} unusual character(s)<code>${esc(row.text.replace(/[\u0000-\u001f]/g,c=>"\\u"+c.charCodeAt(0).toString(16).padStart(4,"0")))}</code></li>`).join("")}</ul><p>${esc(remedy)}</p>`;
+  }else{
+    detail=`<p>${esc(remedy)}</p>`;
+    if(issueId==="pdf_missing")detail+=`<p>Expected location: <code>${esc("inncollectiongroup.com_root/documents/extracted-to-md/"+m.name.replace(/\.md$/i,"")+".pdf")}</code></p>`;
+  }
+  $("#issueContent").innerHTML=`<p>${esc(explanation)}</p><p>Source file: <code>${esc("inncollectiongroup.com_root/menus_md/"+m.name)}</code></p>${detail}<p>Current decision: <strong>${status==="open"?"Open":status==="fixed"?"Marked fixed":"Marked intentional"}</strong></p><label for="issueNote">Review note</label><textarea class="issue-note" id="issueNote" maxlength="4000" placeholder="Optional context for this decision...">${esc(state?.note||"")}</textarea>`;
+  const remove=$("#removeDuplicateLines"),hasRemovable=issueId==="repeated_lines"&&a.repeatedLines.some(group=>group.duplicateLines.length);
+  remove.classList.toggle("hidden",!hasRemovable);remove.disabled=!hasRemovable;
+  remove.onclick=()=>removeRepeatedLines();
+  $$("[data-save-issue]").forEach(button=>button.onclick=()=>saveIssueReview(issueId,button.dataset.saveIssue));
+  $("#issueDialog").showModal();
+}
+function updateIssuePdfLocations(){
+  if(!$("#issueDialog").open||openIssueId!=="repeated_lines")return;
+  const m=menus.find(x=>x.name===current);
+  analyze(md,m?.hasPdf??false).repeatedLines.forEach((group,index)=>{
+    const target=$(`[data-pdf-location="${index}"]`,$("#issueContent"));
+    if(!target)return;
+    const match=pdfOK?findInPdf(group.text.split(/\s+/).slice(0,14).join(" "),0):null;
+    target.textContent=match?`PDF text match: page ${match.page+1}`:pdfFailed?"PDF text locations unavailable":"No text match found in the PDF";
+  });
+}
+async function saveIssueReview(issueId,status){
+  try{
+    const response=await fetch("/api/issues",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:current,issueId,status,note:$("#issueNote").value,sourceHash:issueHash})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||`Server returned HTTP ${response.status}`);
+    issueReviews[issueId]={status,note:$("#issueNote").value};renderHead();$("#issueDialog").close();toast("Issue review saved to the server.");
+  }catch(error){toast("Could not save issue review: "+(error instanceof Error?error.message:String(error)))}
+}
+async function removeRepeatedLines(){
+  const lineNumbers=$$('input[name="removeLine"]:checked',$("#issueContent")).map(input=>+input.value);
+  if(!lineNumbers.length){toast("Select at least one repeated line to remove.");return}
+  const name=current;
+  try{
+    const response=await fetch("/api/issues/fix-duplicates",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,sourceHash:issueHash,lineNumbers,note:$("#issueNote").value})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||`Server returned HTTP ${response.status}`);
+    $("#issueDialog").close();await openMenu(name);
+    toast(`Removed ${result.removedLines.length} repeated line(s) from the Markdown file. PDF unchanged.`);
+  }catch(error){toast("Could not update the Markdown file: "+(error instanceof Error?error.message:String(error)))}
+}
+$("#issueClose").onclick=()=>$("#issueDialog").close();
+$("#issueDialog").addEventListener("click",e=>{if(e.target===$("#issueDialog"))$("#issueDialog").close()});
+$("#issueDialog").addEventListener("close",()=>{openIssueId=null});
+function step(d){const v=visibleMenus(),i=v.findIndex(m=>m.name===current);if(v[i+d])openMenu(v[i+d].name)}
+async function openMenu(name){
+  current=name;sel=null;issueHash="";issueReviews={};pdfTok++;pdfOK=false;renderList();$("#insp").classList.add("hidden");$("#mdBody").innerHTML='<div class="empty">Loading menu...</div>';
+  const m=menus.find(x=>x.name===name);
+  try{
+    const [r,ir]=await Promise.all([fetch("/api/menu"+qs(name),{cache:"no-store"}),fetch("/api/issues"+qs(name),{cache:"no-store"})]);
+    if(!r.ok)throw new Error("Request failed ("+r.status+")");
+    const t=await r.text(),review=ir.ok?await ir.json():null;if(current!==name)return;
+    const menuHash=r.headers.get("X-Source-Hash");
+    if(review&&menuHash&&review.sourceHash!==menuHash)throw new Error("Menu changed while loading; select it again to review the latest version");
+    md=t;blocks=parse(md);m.bytes=new TextEncoder().encode(md).length;
+    if(review){issueHash=review.sourceHash||"";issueReviews=review.decisions||{}}
+    else toast("Could not load saved issue reviews from the server ("+ir.status+").");
+    renderHead();
+    $("#mdBody").innerHTML=`<div id="mdR" class="md">${renderMd()}</div><pre id="mdS" class="src hidden">${esc(md)}</pre>`;
+    $$("[data-view]").forEach(b=>b.classList.toggle("on",b.dataset.view==="rendered"));
+    $("#pdfOpen").classList.toggle("hidden",!m.hasPdf);$("#pdfOpen").href="/api/pdf"+qs(name);
+    loadPdf(m);
+  }catch(e){if(current===name)$("#mdBody").innerHTML=`<div class="empty">Could not load this menu: ${esc(e.message)}</div>`}
+}
+$("#menuList").onclick=e=>{const b=e.target.closest("[data-name]");if(b)openMenu(b.dataset.name)};
+$$("[data-view]").forEach(b=>b.onclick=()=>{const s=b.dataset.view==="source";$("#mdR")?.classList.toggle("hidden",s);$("#mdS")?.classList.toggle("hidden",!s);$$("[data-view]").forEach(t=>t.classList.toggle("on",t===b))});
+
+/* ---------- PDF (pdf.js, with native iframe fallback) ---------- */
+const CDN="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+let pdfjsP;
+const ensurePdfjs=()=>pdfjsP||(pdfjsP=new Promise((ok,no)=>{if(window.pdfjsLib)return ok();const s=document.createElement("script");s.src=CDN+"pdf.min.js";s.onerror=()=>no(new Error("pdf.js could not be loaded"));
+  s.onload=async()=>{try{const t=await (await fetch(CDN+"pdf.worker.min.js")).text();pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([t],{type:"text/javascript"}));ok()}catch(e){no(e)}};document.head.appendChild(s)}));
+async function loadPdf(m){
+  const tk=++pdfTok,box=$("#pdfBody");pdfDoc=null;pdfPages=[];pdfText=[];pdfOK=false;pdfFailed=false;
+  if(!m.hasPdf){pdfFailed=true;box.innerHTML='<div class="note">No matching PDF was found in the extracted-to-md folder.</div>';updateIssuePdfLocations();return}
+  box.innerHTML='<div class="note">Loading PDF...</div>';
+  try{
+    await ensurePdfjs();const doc=await pdfjsLib.getDocument("/api/pdf"+qs(m.name)).promise;if(tk!==pdfTok)return;
+    const pgs=[],txt=[];
+    for(let n=1;n<=doc.numPages;n++){const p=await doc.getPage(n),tc=await p.getTextContent();pgs.push(p);
+      const items=tc.items.filter(i=>i.str&&i.str.trim()),tokens=[];items.forEach((it,ix)=>tok(it.str).forEach(t=>tokens.push({...t,it:ix})));txt.push({tc,items,tokens})}
+    if(tk!==pdfTok)return;pdfDoc=doc;pdfPages=pgs;pdfText=txt;pdfOK=true;await buildPdf(tk);updateIssuePdfLocations();
+  }catch(e){
+    if(tk!==pdfTok)return;pdfFailed=true;box.innerHTML=`<iframe class="pdf-frame" title="Original PDF" src="/api/pdf${qs(m.name)}"></iframe>`;updateIssuePdfLocations();
+    toast("Highlighting in the PDF needs pdf.js ("+e.message+") — showing the plain PDF viewer.");
+  }
+}
+async function buildPdf(tk){
+  const box=$("#pdfBody");if(!pdfOK||box.clientWidth<50)return;pdfW=box.clientWidth;box.innerHTML="";pdfPages.forEach(()=>0);
+  const dpr=window.devicePixelRatio||1,W=pdfW-18;
+  for(let i=0;i<pdfPages.length;i++){
+    const p=pdfPages[i],v1=p.getViewport({scale:1}),sc=W/v1.width*pdfZoom,vp=p.getViewport({scale:sc});
+    const d=document.createElement("div");d.className="pg";d.style.width=vp.width+"px";d.style.height=vp.height+"px";
+    const c=document.createElement("canvas");c.width=vp.width*dpr;c.height=vp.height*dpr;
+    const t=document.createElement("div");t.className="tl";const h=document.createElement("div");h.style.cssText="position:absolute;inset:0;pointer-events:none";
+    d.append(c,t,h);box.appendChild(d);pdfPages[i]._v={d,h,vp};
+    p.render({canvasContext:c.getContext("2d"),viewport:vp,transform:dpr!==1?[dpr,0,0,dpr,0,0]:null}).promise.catch(()=>{});
+    try{pdfjsLib.renderTextLayer({textContentSource:pdfText[i].tc,container:t,viewport:vp,textDivs:[]})}catch(e){}
+  }
+  if(tk!==pdfTok)return;drawHl(false);updateIssuePdfLocations();
+}
+let rsT;new ResizeObserver(()=>{clearTimeout(rsT);rsT=setTimeout(()=>{const w=$("#pdfBody").clientWidth;if(pdfOK&&w>50&&Math.abs(w-pdfW)>20)buildPdf(pdfTok)},250)}).observe($("#pdfBody"));
+$("#zIn").onclick=()=>{pdfZoom=Math.min(3,pdfZoom+.2);buildPdf(pdfTok)};$("#zOut").onclick=()=>{pdfZoom=Math.max(.4,pdfZoom-.2);buildPdf(pdfTok)};
+
+/* ---------- matching text → PDF ---------- */
+const STRIP=/\(?\s*NGCI\s+Available\s*\)?/ig;
+function scan(q,pgs){
+  const m=q.length;let best=null;
+  for(const pi of pgs){const P=pdfText[pi].tokens,n=P.length;
+    for(let i=0;i+m<=n;i++){let k=0;while(k<m&&P[i+k].w===q[k])k++;if(k===m){return{page:pi,a:i,b:i+m-1,score:1,exact:true}}}
+    const L=Math.min(n,m+4);
+    for(let i=0;i+L<=n;i++){const cnt={};q.forEach(w=>cnt[w]=(cnt[w]||0)+1);let hit=0,f=-1,l=-1;
+      for(let j=i;j<i+L;j++){const w=P[j].w;if(cnt[w]>0){cnt[w]--;hit++;if(f<0)f=j;l=j}}
+      if(!hit)continue;const sc=hit/m-(l-f+1-hit)*.003;if(!best||sc>best.score)best={page:pi,a:f,b:l,score:sc,exact:false}}}
+  return best;
+}
+function findInPdf(text,hint){
+  const q=tok(text.replace(STRIP," ")).map(t=>t.w).filter(w=>w.length>1||/\d/.test(w)),m=q.length;if(!m)return null;
+  const all=pdfText.map((_,i)=>i);let r=hint&&pdfText[hint-1]?scan(q,[hint-1]):null;
+  if(!r||r.score<.75){const r2=scan(q,all);if(r2&&(!r||r2.score>r.score))r=r2}
+  return r&&r.score>=(m<3?1:.6)?r:null;
+}
+function rects(mt){
+  const pg=pdfPages[mt.page]?._v;if(!pg)return[];const pt=pdfText[mt.page],by=new Map();
+  for(let i=mt.a;i<=mt.b;i++){const t=pt.tokens[i],c=by.get(t.it);c?(c[0]=Math.min(c[0],t.s),c[1]=Math.max(c[1],t.e)):by.set(t.it,[t.s,t.e])}
+  return[...by].map(([ix,[s,e]])=>{const it=pt.items[ix],tx=pdfjsLib.Util.transform(pg.vp.transform,it.transform),h=Math.hypot(tx[2],tx[3]),w=it.width*pg.vp.scale,L=it.str.length;
+    return{page:mt.page,x:tx[4]+w*s/L-3,y:tx[5]-h*.95,w:Math.max(8,w*(e-s)/L)+6,h:h*1.2}});
+}
+function drawHl(scroll){
+  pdfPages.forEach(p=>{if(p._v)p._v.h.innerHTML=""});if(!sel||!pdfOK)return;let first=null;
+  sel.matches.forEach(mt=>rects(mt).forEach(r=>{const d=document.createElement("div");d.className="hl";d.style.cssText=`left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`;pdfPages[r.page]._v.h.appendChild(d);if(!first||(r.page<first.page||(r.page===first.page&&r.y<first.y)))first=r}));
+  if(scroll&&first){const b=$("#pdfBody"),pg=pdfPages[first.page]._v.d;b.scrollTo({top:pg.offsetTop+first.y-b.clientHeight/3,behavior:"smooth"})}
+}
+
+/* ---------- selection + inspector ---------- */
+function ids(kind,b){
+  if(kind==="Section"){const o=[b.i];for(let j=b.i+1;j<blocks.length&&!(blocks[j].type==="h"&&blocks[j].lvl<=b.lvl);j++)o.push(j);return o}
+  return blocks.filter(x=>x.group===b.group&&x.type!=="h").map(x=>x.i).concat(b.type==="h"?[b.i]:[]).sort((a,c)=>a-c);
+}
+function choose(kind,idList,text,opts={}){
+  const bl=idList.map(i=>blocks[i]).filter(Boolean),pg=bl.find(b=>b.page)?.page||0;
+  const queries=text?[[text,pg]]:kind==="Section"?bl.map(b=>[b.text,b.page]):[[bl.map(b=>b.text).join(" "),pg]];
+  const matches=pdfOK?queries.map(([t,p])=>findInPdf(t,p)).filter(Boolean):[];
+  sel={kind,ids:idList,bl,matches,raw:text||bl.map(b=>b.text).join("\n"),total:queries.length,section:bl[0]?.section||""};
+  $$(".md .sel").forEach(e=>e.classList.remove("sel"));
+  idList.forEach(i=>$(`.md [data-b="${i}"]`)?.classList.add("sel"));
+  if(opts.scrollMd&&idList.length)$(`.md [data-b="${idList[0]}"]`)?.scrollIntoView({block:"center",behavior:"smooth"});
+  drawHl(true);inspect();
+}
+function inspect(){
+  const el=$("#insp");if(!sel){el.classList.add("hidden");return}
+  const heads=sel.bl.filter(b=>b.type==="li"),h=heads[0],single=sel.kind==="Item"&&heads.length===1;
+  let chips="";
+  if(single&&h.pp.length)chips+=h.pp.map((p,k)=>`<span class="chip price">${esc((h.cols[k]?h.cols[k]+" ":"")+p)}</span>`).join("");
+  else{const pr=[...new Set(sel.raw.match(PRICE_RE)||[])];chips+=sel.kind==="Section"?`<span class="chip">${heads.length} items</span>`:pr.length?pr.slice(0,6).map(p=>`<span class="chip price">${esc(p)}</span>`).join(""):'<span class="chip">No price in selection</span>'}
+  const tags=[...new Set(heads.flatMap(b=>b.tags))];
+  chips+=tags.map(t=>`<span class="chip tag">${esc(t)}</span>`).join("")+(heads.some(b=>b.chef)?'<span class="chip tag">♛ Recommended</span>':"");
+  const m=sel.matches,ok=m.length,ex=m.every(x=>x.exact),sc=Math.round(Math.min(...m.map(x=>x.score))*100);
+  el.innerHTML=`<span class="chip hit">${esc(sel.kind)}</span>${sel.section&&sel.kind!=="Section"?`<span class="chip">Section: ${esc(sel.section)}</span>`:""}${chips}`+
+   `<span class="chip ${ok?"hit":"bad"}">${!pdfOK?"PDF highlighting unavailable":ok?`PDF: ${m.length}/${sel.total} matched · p.${[...new Set(m.map(x=>x.page+1))].join(",")} · ${ex?"exact":sc+"%"}`:"Not found in PDF text (scanned or reworded?)"}</span><span class="spacer"></span><button class="btn sm" id="cp">Copy</button><button class="btn sm" id="clr">Clear</button><div class="t">${esc(sel.raw.replace(/\n/g," ").slice(0,220))}</div>`;
+  el.classList.remove("hidden");
+  $("#cp").onclick=()=>navigator.clipboard?.writeText(sel.raw).then(()=>toast("Copied"));
+  $("#clr").onclick=()=>{sel=null;$$(".md .sel").forEach(e=>e.classList.remove("sel"));drawHl(false);inspect()};
+}
+$("#mdBody").addEventListener("mouseup",e=>{
+  const s=getSelection(),t=s&&!s.isCollapsed?s.toString().trim():"";
+  if(t.length>2){const r=s.getRangeAt(0),near=[...$$(".md [data-b]")].filter(x=>r.intersectsNode(x)).map(x=>+x.dataset.b);choose("Text",near,t);return}
+  const el=e.target.closest("[data-b]");if(!el)return;const b=blocks[+el.dataset.b];choose(b.type==="h"?"Section":"Item",ids(b.type==="h"?"Section":"Item",b),null);
+});
+$("#pdfBody").addEventListener("mouseup",e=>{ // PDF -> markdown
+  if(!e.target.closest(".tl"))return;const s=getSelection().toString().trim(),q=s||(e.target.tagName==="SPAN"?e.target.textContent.trim():"");if(!q)return;
+  const qt=tok(q.replace(STRIP," ")).map(t=>t.w);if(!qt.length)return;let best=null,bs=0;
+  blocks.forEach(b=>{if(!b.tokens.length)return;const set=new Set(b.tokens),sc=qt.filter(w=>set.has(w)).length/qt.length-Math.abs(set.size-qt.length)*.01;if(sc>bs){bs=sc;best=b}});
+  if(best&&bs>=.6){$("#mdR")?.classList.remove("hidden");$("#mdS")?.classList.add("hidden");UI.mdCol&&(UI.mdCol=false,applyUI());const k=best.type==="h"?"Section":"Item";choose(k,ids(k,best),null,{scrollMd:true})}
+  else toast("No matching markdown found for that PDF text.");
+});
+
+/* ---------- keys + boot ---------- */
+document.addEventListener("keydown",e=>{
+  const typing=["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName);
+  if(e.key==="/"&&!typing){e.preventDefault();$("#search").focus()}
+  else if(e.key==="Escape"){document.activeElement.blur();if(sel){sel=null;$$(".md .sel").forEach(x=>x.classList.remove("sel"));drawHl(false);inspect()}}
+  else if(!typing&&e.key==="[")$("#bSide").click();
+  else if(!typing&&e.key==="m")$("#bMin").click();
+});
+async function boot(){
+  applyUI();
+  try{
+    const r=await fetch("/api/menus",{cache:"no-store"});if(!r.ok)throw new Error("Request failed ("+r.status+")");
+    menus=(await r.json()).map(m=>{const v=venueOf(m.name);return{...m,venue:v,region:REG[v]||UNK}});
+    $("#totalCount").textContent=menus.length;counts();fillSelects();renderList();
+    if(menus.length)await openMenu(menus[0].name);else $("#mdBody").innerHTML='<div class="empty">No markdown menus were found in menus_md/.</div>';
+  }catch(e){$("#mdBody").innerHTML=`<div class="empty">Could not connect to the menu server. Start it with <code>python3 menu_review_server.py</code> from the project root.<br><br>${esc(e.message)}</div>`;$("#visibleCount").textContent="Server unavailable"}
+}
+boot();
+</script>
+</body>
+</html>

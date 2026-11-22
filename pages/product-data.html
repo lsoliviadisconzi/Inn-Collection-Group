@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product data — Inn Collection Group</title>
+<style>
+:root{color-scheme:dark;--bg:#171513;--bg-card:#1f1c19;--bg-sub:#191714;--border:#35312c;--white:#ece7df;--gray:#8c867d;--gray-hi:#b9b3a9;--accent:#e07b4a;--ok:#85c99c;--err:#f28b82;--warn:#e6b450;--info:#8ab4f8;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--white);font:13px/1.5 var(--sans);display:flex;flex-direction:column;overflow:hidden}
+button,select,input{font:inherit;color:inherit}button,select{cursor:pointer}:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.mc-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px clamp(16px,3vw,40px);border-bottom:1px solid var(--border);background:var(--bg-card)}
+.mc-kicker{color:var(--accent);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.mc-head h1{margin:2px 0;font:600 22px var(--serif);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sample{font:11px var(--mono);padding:2px 10px;border:1px dashed var(--warn);color:var(--warn);border-radius:999px}
+.nav{display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:999px;flex-wrap:wrap}.nav a{padding:3px 12px;border-radius:999px;color:var(--gray-hi);text-decoration:none;font-size:12px}.nav a:hover{color:var(--white)}.nav a.on{background:rgba(224,123,74,.16);color:var(--white)}
+.bar1{flex:none;padding:10px clamp(16px,3vw,40px);border-bottom:1px solid var(--border);background:var(--bg-card);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sel,.search{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:6px 10px}.search{flex:1 1 200px;min-width:150px}.search:focus,.sel:focus{border-color:var(--info);outline:none}
+.btn{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:5px 11px;font-size:12px}.btn:hover{border-color:var(--gray)}.btn.on{background:var(--accent);border-color:var(--accent);color:#111;font-weight:600}.btn:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}.seg .btn{border:0;border-radius:0}
+.content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px clamp(16px,3vw,40px) 40px}.inner{width:min(1440px,100%);margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:10px 14px}.kpi small{color:var(--gray);font-size:12px}.kpi b{display:block;font:600 24px/1.2 var(--serif)}.kpi span{color:var(--gray-hi);font-size:12px}
+.split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+.panel{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);overflow:hidden}
+.scroll{overflow:auto;max-height:calc(100vh - 330px);min-height:320px}
+table{border-collapse:collapse;width:100%}th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
+th{position:sticky;top:0;background:var(--bg-card);color:var(--gray);font:600 11px var(--mono);z-index:2;letter-spacing:.04em}
+tbody tr{cursor:pointer}tbody tr:hover{background:rgba(255,255,255,.03)}tr.sel td{background:rgba(224,123,74,.1)}tr.sel td:first-child{box-shadow:inset 3px 0 var(--accent)}
+.mono{font-family:var(--mono);font-size:12px;color:var(--gray-hi)}
+.ch{display:inline-block;margin:0 3px 2px 0;padding:0 7px;border-radius:999px;border:1px solid var(--border);color:var(--gray-hi);font-size:11px}.ch.m{border-style:dashed}
+.b{display:inline-block;padding:0 8px;border-radius:999px;font:600 11px var(--sans);white-space:nowrap}.b.ok{background:rgba(133,201,156,.15);color:var(--ok)}.b.warn{background:rgba(230,180,80,.15);color:var(--warn)}.b.block{background:rgba(242,139,130,.14);color:var(--err)}.b.n{background:rgba(255,255,255,.07);color:var(--gray-hi)}
+.dh{padding:12px 16px;border-bottom:1px solid var(--border)}.dh h2{margin:0;font:600 18px var(--serif)}.dh .mono{display:block}
+.tabs{display:flex;gap:2px;padding:6px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap}.tabs .btn{border:0;background:none;color:var(--gray-hi)}.tabs .btn.on{background:rgba(224,123,74,.16);color:var(--white);font-weight:600}
+.db{padding:12px 16px}
+.iss{display:grid;gap:6px;margin-bottom:12px}.is{padding:6px 10px;border-left:3px solid var(--warn);background:rgba(0,0,0,.25);font-size:12px;color:var(--gray-hi);cursor:pointer}.is.block{border-color:var(--err)}.is b{color:var(--white)}.ok-l{padding:6px 10px;border-left:3px solid var(--ok);background:rgba(0,0,0,.25);font-size:12px;color:var(--ok);margin-bottom:12px}
+.al{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.al>div{padding:6px 0;border-bottom:1px solid var(--border)}.al small{display:block;color:var(--gray);font-size:11.5px}.al .hit small{color:var(--err)}
+.st{min-width:96px;border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--gray)}.st.c{border-color:var(--ok);color:var(--ok);background:rgba(133,201,156,.1)}.st.m{border-color:var(--warn);color:var(--warn);border-style:dashed}
+.nut{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}.nut div{border:1px solid var(--border);border-radius:8px;padding:8px 10px}.nut small{color:var(--gray);display:block;font-size:11.5px}.nut b{font:600 18px var(--serif)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0 0 10px}.kv dt{color:var(--gray)}.kv dd{margin:0}
+.px{width:92px;border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 8px}
+.note{margin-top:12px;color:var(--gray);font-size:12px}.ctr{text-align:center}.empty{padding:30px;text-align:center;color:var(--gray)}
+@media(max-width:980px){body{overflow:auto;display:block;height:auto}.split{grid-template-columns:1fr}.scroll{max-height:none}}
+</style>
+</head>
+<body>
+<header class="mc-head">
+  <div><span class="mc-kicker">Inn Collection Group</span>
+  <h1>Product data <span class="sample">Sample data · front-end skin only</span></h1>
+  <div style="color:var(--gray-hi)">One record per product: allergens, nutrition, recipe, price and codes, each with its own accuracy check.</div></div>
+  <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a href="launch-readiness.html">Launch readiness</a><a class="on" href="product-data.html" aria-current="page">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
+</header>
+<div class="bar1">
+  <input id="q" class="search" type="search" placeholder="Search name or code…" autocomplete="off">
+  <select id="cat" class="sel" aria-label="Category"></select>
+  <select id="fi" class="sel" aria-label="Issues"><option value="all">Any record state</option><option value="block">Has blocking issues</option><option value="warn">Warnings only</option><option value="clean">Clean</option></select>
+  <div class="seg" role="group" aria-label="View"><button class="btn on" data-v="p">Products</button><button class="btn" data-v="m">Allergen matrix</button></div>
+</div>
+<main class="content"><div class="inner">
+  <div class="kpis" id="kpis"></div>
+  <div class="split" id="main"></div>
+  <p class="note">All products, figures and checks are invented to show the layout. In the real build the allergen state, nutrition and prices would be fields on a product record, and every check below would run on save.</p>
+</div></main>
+<script>
+const AL=[["celery","Cel","Celery"],["gluten","Glu","Gluten"],["crustaceans","Cru","Crustaceans"],["eggs","Egg","Eggs"],["fish","Fis","Fish"],["lupin","Lup","Lupin"],["milk","Mil","Milk"],["molluscs","Mol","Molluscs"],["mustard","Mus","Mustard"],["nuts","Nut","Tree nuts"],["peanuts","Pea","Peanuts"],["sesame","Ses","Sesame"],["soya","Soy","Soya"],["sulphites","Sul","Sulphites"]];
+const AN=Object.fromEntries(AL.map(a=>[a[0],a[2]])),GPF=.65;
+const NS={src:"Calculated from recipe"},nu=(k,f,s,c,g,p,t,src="Calculated from recipe")=>({kcal:k,fat:f,sat:s,carbs:c,sug:g,pro:p,salt:t,src});
+/* c code, n name, cat, v dietary, a allergens (1 contains, 2 may contain), sg signed, price, menu (price printed on menu), tiers, nut, ing [name,g,cost,allergens] */
+const P=[
+{c:"SP-0142",n:"Sourdough & cultured butter",cat:"Small plates",v:["V"],a:{gluten:1,milk:1},sg:1,price:5,menu:5,nut:nu(320,12,7,41,2,9,1.1),ing:[["Sourdough",80,.22,["gluten"]],["Cultured butter",20,.14,["milk"]],["Sea salt",1,.01,[]]]},
+{c:"MN-0201",n:"Beer-battered haddock & chips",cat:"Mains",v:[],a:{fish:1,gluten:1},sg:1,price:16.5,menu:16.5,nut:null,ing:[["Haddock fillet",180,3.1,["fish"]],["Ale batter",90,.45,["gluten"]],["Chips",250,.6,[]],["Tartare sauce",40,.28,["eggs","mustard"]],["Mushy peas",80,null,[]]]},
+{c:"MN-0207",n:"Steak & ale pie",cat:"Mains",v:[],a:{gluten:1,milk:1},sg:1,price:15.95,menu:15.95,tiers:[["Base",15.95,1],["Lake District",16.5,0]],nut:nu(780,41,17,62,6,34,2.4,"Supplier sheet"),ing:[["Beef shin",160,3.2,[]],["Ale",60,.3,["gluten"]],["Puff pastry",110,.55,["gluten","milk"]],["Celery & onion",50,.1,["celery"]],["Gravy",80,.25,["gluten"]]]},
+{c:"MN-0215",n:"Chicken Caesar salad",cat:"Mains",v:[],a:{eggs:1,fish:1,milk:1,gluten:1,mustard:1},sg:1,price:13.5,menu:13.5,nut:nu(540,34,9,22,3,41,2),ing:[["Chicken breast",150,2.4,[]],["Cos lettuce",80,.55,[]],["Caesar dressing",45,.65,["eggs","fish","mustard"]],["Parmesan",15,.6,["milk"]],["Croutons",25,.2,["gluten"]]]},
+{c:"DS-0302",n:"Sticky toffee pudding",cat:"Desserts",v:["V"],a:{gluten:1,milk:1,eggs:1},sg:0,price:7.25,menu:7.25,nut:nu(610,24,14,92,68,6,.9,"Supplier sheet"),ing:null},
+{c:"DR-0410",n:"Elderflower spritz",cat:"Drinks",v:[],a:{sulphites:1},sg:1,price:7.5,menu:7.5,nut:"exempt",ing:null},
+{c:"MN-0220",n:"Walnut & mushroom wellington",cat:"Mains",v:["V"],a:{gluten:1,nuts:1,milk:1},sg:1,price:14.95,menu:14.95,nut:nu(690,44,15,52,5,16,1.8),ing:[["Mushroom duxelles",140,.9,[]],["Walnuts",30,.55,["nuts"]],["Puff pastry",120,.6,["gluten","milk"]],["Seasonal veg",120,.45,[]]]},
+{c:"MN-0220",n:"Vegan burger",cat:"Mains",v:["Ve"],a:{soya:1,gluten:1,sesame:1},sg:1,price:13.95,menu:13.95,nut:nu(820,38,7,88,9,29,2.6),ing:[["Soya patty",120,1.6,["soya"]],["Brioche bun",75,.4,["gluten","milk","sesame"]],["Vegan mayo",20,.18,[]],["Skin-on fries",200,.45,[]]]},
+{c:"SD-0105",n:"Sweet potato fries",cat:"Sides",v:["Ve"],a:{},sg:1,price:4.95,menu:4.95,nut:nu(310,14,2,42,11,3,.8),ing:[["Sweet potato",200,.4,[]],["Rapeseed oil",15,.05,[]]]},
+{c:"KD-0501",n:"Kids sausage & mash",cat:"Kids",v:[],a:{gluten:1,milk:1},sg:1,price:7.5,menu:7.95,nut:nu(520,28,10,41,3,19,2.2),ing:[["Pork sausages",120,.95,["gluten"]],["Mash",150,.3,["milk"]],["Peas & gravy",80,.2,["gluten"]]]}
+];
+const VAT=.2,$=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]),gbp=n=>"£"+n.toFixed(2);
+let sel=0,tab="a",view="p";
+const derived=p=>[...new Set((p.ing||[]).flatMap(i=>i[3]))];
+const cost=p=>{const k=(p.ing||[]).map(i=>i[2]);return{sum:k.filter(x=>x!=null).reduce((a,b)=>a+b,0),miss:k.filter(x=>x==null).length}};
+const gp=p=>{if(!p.ing)return null;const c=cost(p),net=p.price/(1+VAT);return c.miss?null:(net-c.sum)/net};
+function issues(p,i){
+  const o=[],d=derived(p),miss=d.filter(k=>!p.a[k]);
+  if(!p.sg)o.push(["block","Allergens not signed off","a"]);
+  if(miss.length)o.push(["block","Recipe contains "+miss.map(k=>AN[k]).join(", ")+" but the declaration does not","a"]);
+  const bad=p.v.includes("Ve")?["milk","eggs","fish","crustaceans","molluscs"].filter(k=>p.a[k]||d.includes(k)):p.v.includes("V")?["fish","crustaceans","molluscs"].filter(k=>p.a[k]||d.includes(k)):[];
+  if(bad.length)o.push(["block",`Labelled ${p.v.includes("Ve")?"Ve":"V"} but contains ${bad.map(k=>AN[k]).join(", ")}`,"a"]);
+  if(!p.nut)o.push(["block","Nutrition missing","n"]);
+  if(!p.ing&&p.cat!=="Drinks")o.push(["block","Recipe specification missing","r"]);
+  if(p.ing&&cost(p).miss)o.push(["warn",cost(p).miss+" ingredient without a cost, so GP cannot be calculated","r"]);
+  const g=gp(p);if(g!=null&&g<GPF)o.push(["warn",`GP ${Math.round(g*100)}% is below the ${GPF*100}% floor`,"p"]);
+  if(Math.abs(p.price-p.menu)>.001)o.push(["block",`Record price ${gbp(p.price)} differs from ${gbp(p.menu)} on the menu`,"p"]);
+  (p.tiers||[]).filter(t=>!t[2]).forEach(t=>o.push(["warn",`${t[0]} price ${gbp(t[1])} is not an approved variant`,"p"]));
+  if(P.some((q,j)=>j!==i&&q.c===p.c))o.push(["block","Product code "+p.c+" is used by another product","c"]);
+  return o;
+}
+const sev=is=>is.some(x=>x[0]==="block")?"block":is.length?"warn":"ok";
+const chips=p=>AL.filter(a=>p.a[a[0]]).map(a=>`<span class="ch${p.a[a[0]]===2?" m":""}" title="${a[2]}">${a[1]}</span>`).join("")||'<span class="mono">none declared</span>';
+function filtered(){const q=$("#q").value.trim().toLowerCase(),c=$("#cat").value,f=$("#fi").value;
+  return P.map((p,i)=>[p,i]).filter(([p,i])=>{const s=sev(issues(p,i));return(c==="all"||p.cat===c)&&(!q||(p.n+" "+p.c).toLowerCase().includes(q))&&(f==="all"||(f==="clean"?s==="ok":s===f))})}
+function kpis(){
+  const all=P.map((p,i)=>issues(p,i)),n=P.length,blk=all.filter(x=>sev(x)==="block").length,iss=all.reduce((a,x)=>a+x.length,0);
+  $("#kpis").innerHTML=[["Products",n,"in this sample"],["Allergens signed off",`${P.filter(p=>p.sg).length} / ${n}`,"declaration confirmed by a person"],["Records ready",`${all.filter(x=>sev(x)!=="block").length} / ${n}`,"no blocking issue"],["Blocking issues",iss?all.reduce((a,x)=>a+x.filter(y=>y[0]==="block").length,0):0,`across ${blk} products`],["GP below floor",P.filter(p=>{const g=gp(p);return g!=null&&g<GPF}).length,`floor ${GPF*100}%`]].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+}
+function list(){
+  const rows=filtered();
+  return `<div class="panel"><div class="scroll"><table><thead><tr><th>Code</th><th>Product</th><th>Allergens</th><th class="ctr" title="Nutrition">Nut</th><th class="ctr" title="Recipe">Rec</th><th>Price</th><th>State</th></tr></thead><tbody>${rows.map(([p,i])=>{const is=issues(p,i),s=sev(is);
+    return`<tr data-i="${i}" class="${i===sel?"sel":""}"><td class="mono">${esc(p.c)}</td><td><b>${esc(p.n)}</b><br><span class="mono">${esc(p.cat)}${p.v.length?" · "+p.v.join(", "):""}</span></td><td>${chips(p)}</td><td class="ctr">${p.nut?"✓":'<span style="color:var(--err)">✕</span>'}</td><td class="ctr">${p.ing||p.cat==="Drinks"?"✓":'<span style="color:var(--err)">✕</span>'}</td><td>${gbp(p.price)}</td><td><span class="b ${s}">${s==="ok"?"Ready":s==="block"?is.filter(x=>x[0]==="block").length+" blocking":is.length+" warning"+(is.length>1?"s":"")}</span></td></tr>`}).join("")||`<tr><td colspan="7" class="empty">No products match.</td></tr>`}</tbody></table></div></div>`;
+}
+function tabBody(p,i){
+  if(tab==="a"){const d=derived(p);
+    return `<div class="al">${AL.map(a=>{const s=p.a[a[0]]||0,inR=d.includes(a[0]),hit=inR&&!s;
+      const src=(p.ing||[]).filter(g=>g[3].includes(a[0])).map(g=>g[0]).join(", ");
+      return`<div class="${hit?"hit":""}">${a[2]} <span class="mono">${a[1]}</span><small>${src?"In recipe: "+esc(src)+(hit?" — not declared":""):"Not in recipe"}</small></div><div><button class="st ${s===1?"c":s===2?"m":""}" data-al="${a[0]}">${["Not present","Contains","May contain"][s]}</button></div>`}).join("")}</div>
+      <p style="margin:12px 0 6px"><button class="btn" id="sign" ${issues(p,i).some(x=>x[2]==="a"&&x[1]!=="Allergens not signed off")?"disabled":""}>${p.sg?"Signed off — change to unsign":"Sign off allergens"}</button></p>
+      <div class="note" style="margin:0">Sign-off is blocked while the recipe and the declaration disagree. Any edit removes the sign-off.</div>`}
+  if(tab==="n"){if(p.nut==="exempt")return'<div class="ok-l">Exempt: alcoholic drink, no nutrition declaration required in this sample.</div>';
+    if(!p.nut)return'<div class="empty">No nutrition values yet.<br><span class="mono">Needs a supplier sheet, or a costed recipe to calculate from.</span></div>';
+    const n=p.nut,r=[["Energy",n.kcal+" kcal"],["Fat",n.fat+" g"],["of which saturates",n.sat+" g"],["Carbohydrate",n.carbs+" g"],["of which sugars",n.sug+" g"],["Protein",n.pro+" g"],["Salt",n.salt+" g"]];
+    return`<div class="nut">${r.map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join("")}</div><p class="note">Per portion · Source: ${esc(n.src)}</p>`}
+  if(tab==="r"){if(!p.ing)return p.cat==="Drinks"?'<div class="empty">Drinks are specified by serve, not recipe, in this sample.</div>':'<div class="empty">No recipe specification yet.<br><span class="mono">Needs ingredients, quantities, yield and costs.</span></div>';
+    const c=cost(p);return`<table><thead><tr><th>Ingredient</th><th>Qty</th><th>Cost</th><th>Allergens</th></tr></thead><tbody>${p.ing.map(g=>`<tr style="cursor:default"><td>${esc(g[0])}</td><td>${g[1]} g</td><td>${g[2]==null?'<span class="b warn">missing</span>':gbp(g[2])}</td><td>${g[3].map(k=>`<span class="ch">${AN[k]}</span>`).join("")||"—"}</td></tr>`).join("")}</tbody></table><p class="note">Yield: 1 portion · Food cost ${gbp(c.sum)}${c.miss?" (incomplete)":""}</p>`}
+  if(tab==="p"){const net=p.price/(1+VAT),g=gp(p),c=cost(p);
+    return`<dl class="kv"><dt>Sell price (inc VAT)</dt><dd><input class="px" id="px" type="number" step="0.05" min="0" value="${p.price.toFixed(2)}" aria-label="Sell price"></dd><dt>VAT</dt><dd>20% · net ${gbp(net)}</dd><dt>Food cost</dt><dd>${p.ing?gbp(c.sum)+(c.miss?" (incomplete)":""):"—"}</dd><dt>GP</dt><dd>${g==null?"—":`<b style="color:var(--${g<GPF?"warn":"ok"})">${Math.round(g*100)}%</b> <span class="mono">floor ${GPF*100}%</span>`}</dd><dt>Price on menu</dt><dd>${gbp(p.menu)} ${Math.abs(p.price-p.menu)>.001?'<span class="b block">differs</span>':'<span class="b ok">matches</span>'} <span class="mono">read from the menu PDF</span></dd></dl>
+      ${p.tiers?`<table><thead><tr><th>Price tier</th><th>Price</th><th>Variant</th></tr></thead><tbody>${p.tiers.map(t=>`<tr style="cursor:default"><td>${t[0]}</td><td>${gbp(t[1])}</td><td>${t[2]?'<span class="b ok">Approved</span>':'<span class="b warn">Not approved</span>'}</td></tr>`).join("")}</tbody></table>`:""}`}
+  return`<dl class="kv"><dt>Product code</dt><dd class="mono">${esc(p.c)} ${P.some((q,j)=>j!==i&&q.c===p.c)?'<span class="b block">duplicate</span>':'<span class="b ok">unique</span>'}</dd><dt>EPOS item ID</dt><dd><span class="b n">Not assigned</span> <span class="mono">set during POS setup</span></dd><dt>Supplier code</dt><dd><span class="b n">Not mapped</span></dd><dt>Category</dt><dd>${esc(p.cat)}</dd><dt>Dietary</dt><dd>${p.v.join(", ")||"—"}</dd></dl>`;
+}
+function detail(){
+  const p=P[sel],is=issues(p,sel);
+  const TB=[["a","Allergens"],["n","Nutrition"],["r","Recipe"],["p","Pricing"],["c","Codes"]];
+  return`<div class="panel"><div class="dh"><h2>${esc(p.n)}</h2><span class="mono">${esc(p.c)} · ${esc(p.cat)}</span></div><div class="tabs" role="tablist">${TB.map(t=>`<button class="btn ${tab===t[0]?"on":""}" role="tab" data-t="${t[0]}">${t[1]}${is.some(x=>x[2]===t[0])?' <span style="color:var(--'+(is.some(x=>x[2]===t[0]&&x[0]==="block")?"err":"warn")+')">●</span>':""}</button>`).join("")}</div>
+  <div class="db"><div class="iss">${is.length?is.map(x=>`<div class="is ${x[0]}" data-go="${x[2]}"><b>${x[0]==="block"?"Blocks release:":"Warning:"}</b> ${esc(x[1])}</div>`).join(""):'<div class="ok-l">All checks pass for this product.</div>'}</div>${tabBody(p,sel)}</div></div>`;
+}
+function matrix(){
+  const rows=filtered();
+  return`<div class="panel" style="grid-column:1/-1"><div class="scroll"><table><thead><tr><th>Dish</th>${AL.map(a=>`<th class="ctr" title="${a[2]}">${a[1]}</th>`).join("")}<th>Signed</th><th>State</th></tr></thead><tbody>${rows.map(([p,i])=>{const is=issues(p,i),s=sev(is),d=derived(p);
+    return`<tr data-i="${i}" data-m="1"><td><b>${esc(p.n)}</b></td>${AL.map(a=>{const v=p.a[a[0]],hit=d.includes(a[0])&&!v;return`<td class="ctr" ${hit?'style="background:rgba(242,139,130,.18)" title="In recipe, not declared"':""}>${v===1?"●":v===2?"○":hit?'<span style="color:var(--err)">!</span>':'<span style="color:var(--border)">·</span>'}</td>`}).join("")}<td>${p.sg?'<span class="b ok">Yes</span>':'<span class="b block">No</span>'}</td><td><span class="b ${s}">${s==="ok"?"Ready":is.length+" issue"+(is.length>1?"s":"")}</span></td></tr>`}).join("")}</tbody></table></div><div class="db" style="color:var(--gray-hi)">● contains · ○ may contain · <span style="color:var(--err)">!</span> found in the recipe but not declared</div></div>`;
+}
+function render(){kpis();$("#main").innerHTML=view==="m"?matrix():list()+detail()}
+document.addEventListener("click",e=>{
+  const r=e.target.closest("tbody tr[data-i]"),t=e.target.closest("[data-t]"),g=e.target.closest("[data-go]"),a=e.target.closest("[data-al]"),v=e.target.closest("[data-v]");
+  if(v){view=v.dataset.v;$$("[data-v]").forEach(b=>b.classList.toggle("on",b===v));render();return}
+  if(r){sel=+r.dataset.i;if(r.dataset.m){view="p";$$("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==="p"))}render();return}
+  if(t){tab=t.dataset.t;render();return}if(g){tab=g.dataset.go;render();return}
+  if(a){const p=P[sel],k=a.dataset.al;p.a[k]=((p.a[k]||0)+1)%3;if(!p.a[k])delete p.a[k];p.sg=0;render();return}
+  if(e.target.id==="sign"){P[sel].sg=P[sel].sg?0:1;render()}
+});
+document.addEventListener("input",e=>{if(e.target.id==="px"){const v=parseFloat(e.target.value);if(v>=0){P[sel].price=v;const f=e.target.selectionStart;kpis();const pos=f;$("#main").children[0].outerHTML=list();const dpanel=$("#main").children[1];const keep=e.target.value;dpanel.outerHTML=detail();const n=$("#px");n.value=keep;n.focus();n.setSelectionRange(pos,pos)}}});
+$("#cat").innerHTML='<option value="all">All categories</option>'+[...new Set(P.map(p=>p.cat))].map(c=>`<option>${c}</option>`).join("");
+["#q","#cat","#fi"].forEach(s=>$(s).addEventListener("input",render));
+render();
+</script>
+</body>
+</html>

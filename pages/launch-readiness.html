@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch readiness — Inn Collection Group</title>
+<style>
+:root{color-scheme:dark;--bg:#171513;--bg-card:#1f1c19;--bg-sub:#191714;--border:#35312c;--white:#ece7df;--gray:#8c867d;--gray-hi:#b9b3a9;--accent:#e07b4a;--ok:#85c99c;--err:#f28b82;--warn:#e6b450;--info:#8ab4f8;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--white);font:13px/1.5 var(--sans);display:flex;flex-direction:column;overflow:hidden}
+button,select{font:inherit;color:inherit}button,select{cursor:pointer}:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.mc-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px clamp(16px,3vw,40px);border-bottom:1px solid var(--border);background:var(--bg-card)}
+.mc-kicker{color:var(--accent);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.mc-head h1{margin:2px 0;font:600 22px var(--serif);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sample{font:11px var(--mono);padding:2px 10px;border:1px dashed var(--warn);color:var(--warn);border-radius:999px;letter-spacing:.04em}
+.nav{display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:999px;flex-wrap:wrap}.nav a{padding:3px 12px;border-radius:999px;color:var(--gray-hi);text-decoration:none;font-size:12px}.nav a:hover{color:var(--white)}.nav a.on{background:rgba(224,123,74,.16);color:var(--white)}
+.sel{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:5px 10px}
+.content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:18px clamp(16px,3vw,40px) 40px}.inner{width:min(1440px,100%);margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:18px}
+.kpi{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:12px 14px}.kpi small{color:var(--gray);font-size:12px}.kpi b{display:block;font:600 26px/1.2 var(--serif)}.kpi span{color:var(--gray-hi);font-size:12px}
+h2.s{margin:22px 0 8px;font:600 17px var(--serif);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}h2.s small{font:12px var(--sans);color:var(--gray)}
+.tl{position:relative;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:34px 28px 16px;margin-bottom:6px}
+.tl .line{position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.08)}.tl .fill{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--ok)}
+.ms{position:absolute;top:-6px;transform:translateX(-50%);text-align:center;width:130px}.ms i{display:block;width:16px;height:16px;margin:0 auto 6px;border-radius:50%;border:2px solid var(--gray);background:var(--bg-card)}.ms.d i{background:var(--ok);border-color:var(--ok)}.ms.n i{border-color:var(--warn)}
+.ms span{display:block;font-size:12px;font-weight:600}.ms em{font:11px var(--mono);color:var(--gray);font-style:normal}
+.now{position:absolute;top:-30px;transform:translateX(-50%);font:11px var(--mono);color:#111;background:var(--accent);padding:1px 8px;border-radius:999px;white-space:nowrap}
+.tlpad{height:62px}
+.ws{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.card{text-align:left;border:1px solid var(--border);border-left:4px solid var(--gray);border-radius:10px;background:var(--bg-card);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.card:hover{border-color:var(--gray)}.card.done{border-left-color:var(--ok)}.card.track{border-left-color:var(--info)}.card.risk{border-left-color:var(--warn)}.card.block{border-left-color:var(--err)}
+.card h3{margin:0;font:600 15px var(--serif);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.b{display:inline-block;padding:0 8px;border-radius:999px;font:600 11px var(--sans);white-space:nowrap}.b.done{background:rgba(133,201,156,.15);color:var(--ok)}.b.track{background:rgba(138,180,248,.15);color:var(--info)}.b.risk{background:rgba(230,180,80,.15);color:var(--warn)}.b.block{background:rgba(242,139,130,.14);color:var(--err)}.b.todo{background:rgba(255,255,255,.07);color:var(--gray-hi)}
+.bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.07)}.bar i{display:block}
+.meta{display:flex;justify-content:space-between;gap:8px;color:var(--gray-hi);font-size:12px;flex-wrap:wrap}.meta .late{color:var(--err)}
+.why{padding:6px 9px;border-left:3px solid var(--err);background:rgba(0,0,0,.25);font-size:12px;color:var(--gray-hi)}.why.w{border-color:var(--warn)}
+.grid{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);overflow:auto;max-height:520px}
+table{border-collapse:collapse;width:100%;min-width:640px}th,td{padding:5px 10px;text-align:center;border-bottom:1px solid var(--border);font-size:12px}
+th{position:sticky;top:0;background:var(--bg-card);color:var(--gray);font:600 11px var(--mono);z-index:2}th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--bg-card);z-index:1}th:first-child{z-index:3}
+tr.rg td{background:var(--bg-sub);color:var(--accent);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:left}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.12)}.dot.done{background:var(--ok)}.dot.track{background:var(--info)}.dot.risk{background:var(--warn)}.dot.block{background:var(--err)}
+.leg{display:flex;gap:14px;flex-wrap:wrap;color:var(--gray-hi);font-size:12px;margin:6px 0}.leg span{display:flex;align-items:center;gap:6px}
+.scrim{position:fixed;inset:0;background:#0008;display:none;z-index:9}.scrim.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--bg-card);border-left:1px solid var(--border);z-index:10;transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column}
+.drawer.on{transform:none}@media(prefers-reduced-motion:reduce){.drawer{transition:none}}
+.dh{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.dh h2{margin:0;font:600 19px var(--serif)}
+.db{flex:1;overflow-y:auto;padding:14px 18px}.gate{padding:8px 10px;border-left:3px solid var(--accent);background:rgba(0,0,0,.25);color:var(--gray-hi);margin-bottom:12px}
+.it{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:9px 0;border-bottom:1px solid var(--border)}.it input{margin-top:3px;accent-color:var(--accent)}.it small{display:block;color:var(--gray)}
+.btn{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 10px;font-size:12px}.btn:hover{border-color:var(--gray)}
+.note{margin-top:14px;color:var(--gray);font-size:12px}
+</style>
+</head>
+<body>
+<header class="mc-head">
+  <div>
+    <span class="mc-kicker">Inn Collection Group</span>
+    <h1>Launch readiness <span class="sample">Sample data · front-end skin only</span></h1>
+    <div class="meta"><select class="sel" aria-label="Launch"><option>Spring menu 2027 · launch 1 Mar 2027</option></select><span>Shown as of <b>8 Feb 2027</b></span></div>
+  </div>
+  <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a class="on" href="launch-readiness.html" aria-current="page">Launch readiness</a><a href="product-data.html">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
+</header>
+<main class="content"><div class="inner">
+  <div class="kpis" id="kpis"></div>
+  <h2 class="s">Timeline <small>four milestones, today marked</small></h2>
+  <div class="tl"><div class="line" id="line"></div><div class="tlpad"></div></div>
+  <h2 class="s">Workstreams <small>select one for its checklist and the rule for calling it complete</small></h2>
+  <div class="ws" id="ws"></div>
+  <h2 class="s">Site readiness <small id="sc"></small></h2>
+  <div class="leg"><span><i class="dot done"></i>Done</span><span><i class="dot track"></i>In progress</span><span><i class="dot risk"></i>At risk</span><span><i class="dot block"></i>Blocked</span><span><i class="dot"></i>Not started</span><select class="sel" id="rg" aria-label="Region"></select></div>
+  <div class="grid"><table id="tb"></table></div>
+  <p class="note">Everything here is invented to show the layout. In the real build each checklist item would link to its source record (menu, recipe, product, POS item) and statuses would come from those records, not be set by hand.</p>
+</div></main>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="dr" aria-label="Workstream detail"></aside>
+<script>
+const AS=new Date("2027-02-08"),LAUNCH=new Date("2027-03-01"),D=s=>new Date(s);
+const ST={done:"Done",track:"On track",risk:"At risk",block:"Blocked",todo:"Not started"};
+/* name, short, owner, due, gate, [items: text, status, owner, note] */
+const W=[
+["Menus","MEN","F&B team","2027-01-29","Every dish has a description, section and allergens, and F&B has approved the menu.",[["Dish list locked","done","F&B"],["Descriptions approved","done","F&B"],["Drinks list locked","track","F&B"],["Allergen matrix signed off","risk","F&B","Two dishes have no allergen entry"],["Menu artwork proofed","todo","Marketing"]]],
+["Recipes","REC","F&B team","2027-02-05","Every dish has a recipe card with yield, portion weight and costed ingredients.",[["Recipe cards written","track","F&B"],["Yields and portion weights confirmed","track","F&B"],["Ingredient costs from Procurement","risk","Procurement","Four items still unpriced"],["Nutrition calculated","todo","F&B"],["Prep standards photographed","todo","Operations"]]],
+["Pricing","PRI","Finance","2027-02-10","Sell price, VAT and GP are set for each product, and Finance has signed off.",[["Target GP agreed","done","Finance"],["VAT rates checked","done","Finance"],["Sell prices set","track","Commercial"],["Site price variants","todo","Commercial"],["Finance sign-off","todo","Finance"]]],
+["Systems","SYS","Coordinator","2027-02-15","Every product has a code, a record and mapped supplier items in the food data platform.",[["Product codes assigned","done","Coordinator"],["Product records created","track","Coordinator"],["Supplier items mapped","block","Procurement","Waiting on supplier item codes"],["Food data platform updated","todo","Coordinator"]]],
+["POS setup","POS","Coordinator","2027-02-19","Menu structure, prices and promotions are built, tested and released to sites.",[["Menu structure built","track","Coordinator"],["Modifiers and promotions configured","todo","Coordinator"],["Test transactions run","todo","Coordinator"],["Pre-release QA passed","todo","Coordinator"],["Released to sites","todo","EPOS provider"]]],
+["Product information","INF","Coordinator","2027-02-17","Each product has allergen and nutrition sheets and a spec-book page.",[["Guest descriptions written","done","Marketing"],["Allergen and nutrition sheets","risk","F&B","Waiting on nutrition figures"],["Spec books drafted","track","Coordinator"],["Product knowledge cards","todo","F&B"]]],
+["Training materials","TRN","Operations","2027-02-24","Site teams have briefing, tasting notes and a short check before launch.",[["Tasting notes","todo","F&B"],["Prep steps and video","todo","Operations"],["Server briefing","todo","Operations"],["Team quiz","todo","Operations"]]],
+["Launch communications","COM","Coordinator","2027-02-22","Every site has the launch brief, spec book, timings and field-team contact.",[["Launch brief to sites","done","Coordinator"],["Field team call scheduled","done","Operations"],["Timings and checklist","track","Coordinator"],["Marketing assets aligned","track","Marketing"],["Spec books sent to sites","todo","Coordinator"]]]
+].map(w=>({n:w[0],s:w[1],o:w[2],due:D(w[3]),gate:w[4],items:w[5].map(i=>({t:i[0],st:i[1],o:i[2],note:i[3]||""}))}));
+const MS=[["Products locked","2027-01-22"],["EPOS configured","2027-02-15"],["Spec books to sites","2027-02-22"],["Launch","2027-03-01"]];
+const SITES=[["The Kingslodge Inn","County Durham"],["The Seaton Lane Inn","County Durham"],["The Midland","Lancashire"],["Offshore","Lancashire"],["The Seaburn Inn","Tyne and Wear"],["The Tynemouth Castle Inn","Tyne and Wear"],["The Ambleside Inn","Lake District"],["The Angel Inn","Lake District"],["The Coniston Inn","Lake District"],["The Pheasant Inn","Lake District"],["The Swan, Grasmere","Lake District"],["The Temperance Inn","Lake District"],["The Ullswater Inn","Lake District"],["The Wateredge Inn","Lake District"],["The Waterhead Inn","Lake District"],["The Wordsworth","Lake District"],["The Bull's Head Inn","North Wales"],["The Swallow Falls Inn","North Wales"],["The Amble Inn","Northumberland"],["The Bamburgh Castle Inn","Northumberland"],["The Commissioners Quay Inn","Northumberland"],["The Hogs Head Inn","Northumberland"],["The Lindisfarne Inn","Northumberland"],["Dean Court","Yorkshire"],["The Black Swan","Yorkshire"],["The Harrogate Inn","Yorkshire"],["The Knaresborough Inn","Yorkshire"],["The Northallerton Inn","Yorkshire"],["The Ripon Inn","Yorkshire"],["The King's Head Inn","Yorkshire"],["The Stables, Whitby","Yorkshire"]];
+const $=(s,r=document)=>r.querySelector(s),esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const fd=d=>d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const pct=w=>w.items.filter(i=>i.st==="done").length/w.items.length;
+function wst(w){const s=w.items.map(i=>i.st);if(s.includes("block"))return"block";if(s.includes("risk"))return"risk";if(s.every(x=>x==="done"))return"done";if(s.every(x=>x==="todo"))return"todo";return"track"}
+const late=w=>w.due<AS&&wst(w)!=="done";
+const rnd=(i,j)=>{const x=Math.sin(i*12.9898+j*78.233)*43758.5453;return x-Math.floor(x)};
+function cell(i,j){const w=W[j],p=pct(w),r=rnd(i,j),st=wst(w);
+  if(st==="block"&&r>.86)return"block";if(r<p*.9)return"done";if(r<p*.9+.25)return"track";if(st==="risk"&&r>.9)return"risk";return"todo"}
+function kpis(){
+  const all=W.flatMap(w=>w.items),done=all.filter(i=>i.st==="done").length,bl=all.filter(i=>i.st==="block"||i.st==="risk").length;
+  const ready=SITES.filter((_,i)=>W.every((_,j)=>cell(i,j)==="done")).length,days=Math.round((LAUNCH-AS)/864e5),ov=W.filter(late).length;
+  $("#kpis").innerHTML=[["Overall ready",Math.round(done/all.length*100)+"%",`${done} of ${all.length} checklist items done`],["Days to launch",days,"launch on "+fd(LAUNCH)+" 2027"],["Workstreams overdue",ov,`of ${W.length}; due date passed, not done`],["Items blocked or at risk",bl,"need a decision or an input"],["Sites fully ready",`${ready} / ${SITES.length}`,"all eight workstreams done at the site"]].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+}
+function tl(){
+  const a=D(MS[0][1]),z=LAUNCH,span=z-a,pos=d=>Math.min(100,Math.max(0,(d-a)/span*100));
+  $("#line").innerHTML=`<div class="fill" style="width:${pos(AS)}%"></div>`+MS.map(m=>{const d=D(m[1]),c=d<=AS?"d":(d-AS)<12*864e5?"n":"";return`<div class="ms ${c}" style="left:${pos(d)}%"><i></i><span>${m[0]}</span><em>${fd(d)}</em></div>`}).join("")+`<div class="now" style="left:${pos(AS)}%">Today ${fd(AS)}</div>`;
+}
+function cards(){
+  $("#ws").innerHTML=W.map((w,k)=>{const st=wst(w),n=w.items.length,c=s=>w.items.filter(i=>i.st===s).length,bad=w.items.find(i=>i.st==="block")||w.items.find(i=>i.st==="risk");
+    return`<button class="card ${st}" data-k="${k}"><h3>${esc(w.n)}<span class="b ${st}">${late(w)&&st!=="block"?"Overdue":ST[st]}</span></h3>
+    <div class="bar"><i style="width:${c("done")/n*100}%;background:var(--ok)"></i><i style="width:${(c("track")+c("risk"))/n*100}%;background:var(--info)"></i><i style="width:${c("block")/n*100}%;background:var(--err)"></i></div>
+    <div class="meta"><span>${c("done")} of ${n} done · ${esc(w.o)}</span><span class="${late(w)?"late":""}">Due ${fd(w.due)}</span></div>
+    ${bad?`<div class="why ${bad.st==="risk"?"w":""}"><b>${esc(bad.t)}:</b> ${esc(bad.note||ST[bad.st])}</div>`:""}</button>`}).join("");
+}
+function grid(){
+  const rg=$("#rg").value;let h=`<tr><th>Site</th>${W.map(w=>`<th title="${esc(w.n)}">${w.s}</th>`).join("")}</tr>`,last="",n=0;
+  SITES.forEach((s,i)=>{if(rg!=="all"&&s[1]!==rg)return;n++;if(s[1]!==last){last=s[1];h+=`<tr class="rg"><td colspan="${W.length+1}">${esc(s[1])}</td></tr>`}
+    h+=`<tr><td>${esc(s[0])}</td>${W.map((w,j)=>{const c=cell(i,j);return`<td><i class="dot ${c}" title="${esc(w.n)}: ${c==="todo"?"Not started":ST[c]||c}"></i></td>`}).join("")}</tr>`});
+  $("#tb").innerHTML=h;$("#sc").textContent=`${n} of ${SITES.length} sites`;
+}
+function open(k){const w=W[k];W.cur=k;const st=wst(w);
+  $("#dr").innerHTML=`<div class="dh"><div><h2>${esc(w.n)}</h2><span class="b ${st}">${late(w)&&st!=="block"?"Overdue":ST[st]}</span> <span class="meta" style="display:inline">${esc(w.o)} · due ${fd(w.due)}</span></div><button class="btn" id="x">Close</button></div>
+  <div class="db"><div class="gate"><b>Complete when:</b> ${esc(w.gate)}</div>${w.items.map((i,x)=>`<label class="it"><input type="checkbox" data-x="${x}" ${i.st==="done"?"checked":""}><span>${esc(i.t)}${i.note?`<small>${esc(i.note)}</small>`:""}</span><span class="b ${i.st}">${ST[i.st]}</span></label>`).join("")}
+  <p class="note">Ticking an item here updates the cards, timeline numbers and totals, as a preview of how it would respond.</p></div>`;
+  $("#dr").classList.add("on");$("#scrim").classList.add("on");$("#x").onclick=close;$("#x").focus();
+  document.querySelectorAll("#dr [data-x]").forEach(c=>c.onchange=()=>{const it=w.items[+c.dataset.x];it.st=c.checked?"done":"track";it.note=c.checked?"":it.note;refresh();open(k)});
+}
+function close(){$("#dr").classList.remove("on");$("#scrim").classList.remove("on")}
+function refresh(){kpis();cards();grid()}
+$("#ws").onclick=e=>{const c=e.target.closest("[data-k]");if(c)open(+c.dataset.k)};
+$("#scrim").onclick=close;document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+$("#rg").innerHTML='<option value="all">All regions</option>'+[...new Set(SITES.map(s=>s[1]))].map(r=>`<option>${esc(r)}</option>`).join("");$("#rg").onchange=grid;
+tl();refresh();
+</script>
+</body>
+</html>

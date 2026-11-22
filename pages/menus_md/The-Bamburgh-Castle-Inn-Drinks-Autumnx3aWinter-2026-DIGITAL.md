@@ -1,0 +1,324 @@
+# The Bamburgh Castle Inn Drinks Autumn:Winter 2026 DIGITAL
+
+
+## RED WINES
+
+- **Bottle**
+- **250ml**
+- **175ml**
+- **7.5**
+- **6**
+
+### SMOOTH & FRUITY
+
+*Our full drinks range and wine cellar can be found at the bar, this list features a selection of
+ our wines, cocktails, mocktails and towards the back you’ll find after dinner drinks, teas and
+ coffees.*
+- **Principato Pinot Noir, Veneto, Italy**
+  - Delicate aromas of sour cherry with hints of vanilla. Fresh and well-balanced.
+- **31**
+- **Canyon Road, Merlot, California, USA**
+  - Plum, cherry and subtle chocolate notes.
+- **22**
+- **Ramon Bilbao Tempranillo, Rioja, Spain**
+  - Fresh, versatile, fruity & balanced with subtle vanilla notes.
+- **36**
+- **Record Sun, Shiraz, South Australia**
+  - Soft and juicy plummy fruit flavours with savoury tannins.
+- **29**
+- **Crazy Rows Carignan, Maule Valley, Chile**
+  - Rich, fruit-forward red wine with flavours of ripe blackberry, black cherry and plum.
+- **27**
+
+### RICH & FULL-BODIED
+
+- **Basking Lizards, Cabernet Sauvignon, South Australia**
+  - Blackcurrant, dark cherry and hints of spice and oak.
+- **27**
+- **9.5**
+- **7.5**
+- **7 Fires Malbec, Mendoza, Argentina**
+  - Bramble, plum and hints of cocoa. Rich and velvety.
+- **31**
+- **11**
+- **8**
+- **Carnivor Zinfandel, California, USA**
+  - Rich cassis and dark cherry flavours. Bold, smooth and perfect with steak.
+- **33**
+- **12**
+- **8.5**
+- **Trescoy de Lavau, Châteauneuf du Pape, France**
+  - Full-bodied and complex with ripe red and dark fruits, herbs, spice and earthy notes.
+- **48**
+- **Torre del Falasco, Amarone, Veneto, Italy**
+  - Rich, powerful and full-bodied with ripe plum, cherry and chocolate notes.
+- **52**
+*125ml serving also available.*
+- **WHITE WINES**
+  - Crisp & Refreshing
+- **Bottle**
+
+## ROSÉ WINES
+
+- **Bottle**
+- **250ml**
+- **175ml**
+- **22**
+- **7.5**
+- **6**
+- **31**
+- **Canyon Road, White Zinfandel Rosé, California, USA**
+  - Strawberry, raspberry and melon flavours. Soft and easy-drinking.
+- **La Font Picpoul de Pinet, Languedoc, France**
+  - Crisp, dry and refreshing with lemon, green apple and subtle floral notes.
+- **29**
+- **10**
+- **7.75**
+- **Akau, Sauvignon Blanc, Marlborough, New Zealand**
+  - Crisp & vibrant. Bright, pineapple, gooseberry, citrus, and elderflower, balanced by a zesty,
+    refreshing acidity and a clean finish.
+- **29**
+- **Principato, Pinot Grigio Blush, Veneto, Italy**
+  - Light, fresh and delicate with hints of red berries, citrus and floral notes. Crisp and
+    refreshing.
+- **40**
+- **Hubert Brochard, Sancerre, Loire, France**
+  - A classic, high-quality Sancerre from the prestigious Brochard family. Aromas of White
+    flowers, citrus and exotic fruits. Balanced, fresh and refined.
+- **48**
+- **Roseblood d’Estoublon, Rosé, Provence, France**
+  - Pale rose colour, expressive nose with notes of raspberry, wild berries and white flowers. The
+    harmony of grape varieties expresses itself on the palate.
+- **Roman Bilbao, Rosado Garnacha, Rioja, Spain**
+  - Aromas of strawberries and red cherries, complemented by a subtle peach and delicate floral
+    nuances.
+- **34**
+- **Josselin, Petit Chablis, Burgundy, France**
+  - Dry and mineral-driven with green apple, lemon and flinty notes. Light-bodied with crisp
+    acidity and a clean, steely finish.
+- **42**
+- **You & Me Albariño, Rias Baixas, Spain**
+  - Fresh and aromatic with peach, pear and hints of tropical fruit. Light with bright acidity
+    typical of coastal Albariño.
+- **42**
+- **Canyon Road, Pinot Grigio, California, USA**
+  - Fresh green apple, citrus and white peach. Crisp, clean and refreshing.
+- **22**
+- **250ml**
+- **10**
+- **175ml**
+- **8**
+
+## SPARKLING WINES
+
+- **7.5**
+- **6**
+
+### RICH & ROUNDED
+
+- **Spier Good, Natured Chenin Blanc, Western Cape, SA**
+  - Sweet citrus fruits, white stone fruits, mineral notes and floral aromas.
+- **36**
+- **Last Stand, Chardonnay, South East Australia**
+  - Ripe apple and pear, subtle citrus and a round texture. Light and balanced.
+- **27**
+- **Los Gansos, Viognier, Central Valley, Chile**
+  - Aromatic and full-bodied with notes of apricot and peach. Smooth with a light sweetness.
+- **29**
+- **9.5**
+- **7.5**
+- **Bottle**
+- **Bolney Classic Cuvee, West Sussex, England**
+  - Citrus, orchard fruits and delicate brioche notes. Fresh, refined and crafted using
+    traditional Champagne methods.
+- **50**
+- **Bellino, Prosecco DOC, Veneto, Italy**
+  - Apple, pear and a hint of peach with soft fizz.
+- **30**
+- **Ayala, Brut Majeur, Champagne, France**
+  - Fresh and elegant with crisp citrus and green apple notes, balanced by a gentle toastiness and
+    fine bubbles. Clean, dry finish makes it very refreshing.
+- **55**
+- **Ayala, Rosé Majeur, Champagne, France**
+  - Delicate and fruity with flavours of wild strawberries, raspberry and a hint of peach. Light,
+    fresh and subtly creamy with a soft, elegant finish.
+- **60**
+- **Laurent Perrier, La Cuvée, Champagne, France**
+  - Light and elegant with citrus, white fruit and floral notes. Crisp, delicate and very
+    refreshing.
+- **75**
+- **Laurent Perrier, Rosé, Champagne, France**
+  - Vibrant and fruity with fresh strawberry, raspberry and cherry flavours. Lively, smooth and
+    beautifully balanced.
+- **95**
+- **Glass**
+- **6**
+*Fizz Friday*
+- **20% OFF A**
+  - BOTTLE All day Friday
+*125ml serving also available.*
+
+## SIGNATURE COCKTAILS
+
+- **Blackberry Mojito**
+  - Captain Morgan White Rum, juicy blackberry, fresh mint and zesty lime. Fruity, vibrant and
+    refreshing.
+- **11**
+- **Walker Honey Sour**
+  - Johnnie Walker Black Label, golden honey and fresh lemon. Rich, smoky and perfectly balanced.
+- **11**
+- **Winter Star Martini**
+  - Chase Vodka with tropical passion fruit and cinnamon. Fruity, vibrant and indulgent.
+- **11**
+- **Baileys Martini**
+  - Baileys and Chase Vodka shaken with rich espresso. Creamy, indulgent and deliciously smooth.
+- **11**
+- **Chambord Spritz**
+  - Chambord with sparkling wine and soda, delivering bright notes of raspberry. Fruity, elegant
+    and refreshingly light.
+- **11**
+
+## CLASSIC COCKTAILS
+
+- **Old Fashioned**
+  - Bulleit Bourbon with bitters and a touch of sweetness. Rich, warming and satisfyingly smooth.
+- **11**
+- **Passionfruit Martini**
+  - Chase Vodka with tropical passionfruit and smooth vanilla. Fruity, vibrant and deliciously
+    indulgent.
+- **11**
+- **Cherrylicious**
+  - Sweet cherry liqueur blended with vodka for a bold, fruity and irresistible serve.
+- **11**
+- **French Martini**
+  - Chase Vodka with juicy raspberry and pineapple. Silky, fruity and elegantly refreshing.
+- **11**
+- **Margarita**
+  - Casamigos Tequila with zesty lime and orange. Fresh, vibrant and perfectly balanced.
+- **11**
+- **Espresso Martini**
+  - Chase Vodka with rich espresso and coffee liqueur. Bold, smooth and beautifully velvety.
+- **11**
+- **Negroni**
+  - Tanqueray London Dry Gin with bittersweet aperitif and Vermouth. Bold, botanical and perfectly
+    bittersweet.
+- **11**
+- **Bramble**
+  - Tanqueray London Dry Gin with blackberry and fresh citrus. Bright, fruity and refreshingly
+    crisp.
+- **11**
+- **Bloody Mary**
+  - Chase Vodka, ripe tomato, zesty citrus and warming spices. Bold, full-bodied and iconic.
+- **11**
+- **Make it spicy**
+  - with a hit of chilli!
+- **Rum Punch**
+  - 11 Captain Morgan White Rum with juicy pineapple and citrus. Tropical, refreshing and
+    wonderfully easy-drinking.
+- **Any two**
+  - Cocktails £1 4 *
+- **MON - SAT**
+- **12pm - 6pm**
+- **Bartender’s Choice**
+- **Bartender’s Choice**
+
+## SPRITZ
+
+
+## MOCKTAILS
+
+- **Aperol Spritz**
+  - Bright, crisp & effortlessly refreshing.
+- **10**
+- **Blackcurrant Spritz**
+  - Rich, bold and bursting with blackcurrant flavour, balances sweet-tart fruit notes with a
+    crisp sparkling finish.
+- **10**
+- **Limoncello Spritz**
+  - Bright, zesty and bursting with Mediterranean sunshine.
+- **Hugo Spritz**
+  - Tanqueray London Dry Gin with elderflower and Prosecco. Creating a light aromatic sip that is
+    crisp and floral.
+- **10**
+- **10**
+- **Raspberry & Ginger Mule**
+  - Zesty, fiery and vibrantly fruity, this lively non-alcohol cocktail pairs tart and juicy
+    raspberries with a hint of sweetness and a warming spice.
+- **7**
+- **Strawberry & Lime Cooler**
+  - Sweet, tangy and endlessly refreshing, the ultimate crowd-pleaser.
+- **7**
+- **Cuba Sans Libra**
+  - Rich, dark and full of flavour, this non-alcoholic Cuba Libre features Captain Morgan 0.0% for
+    all the classic spiced character without the ABV.
+- **7**
+- **Pineapple & Passionfruit Sling**
+  - This luscious mocktail blends Captain Morgan 0% rum with a sweet juicy flavour of pineapple,
+    lime and passionfruit.
+- **7**
+- **Bartender’s Choice**
+
+## LOW & NO
+
+
+## BEER
+
+- **Guinness 0.0%**
+  - Guinness 0.0% boasts the same beautifully smooth taste and unique dark colour of Guinness.
+- **6**
+- **Staropramen 0.0%**
+  - Refreshing, full-bodied, 0.0%. Subtle fruity flavour with herbal hop notes and underlying
+    malt.
+- **4**
+
+## SPIRITS
+
+- **Madri 0.0%**
+  - Smooth, crisp & full of Authentic Spanish character.
+- **4**
+- **Corona 0.0%**
+  - Enjoy the crisp, Natural flavours of Corona 0.0%, best served with a wedge of lime.
+- **4.75**
+
+## SPARKLING
+
+- **200ml**
+- **(Double as standard measure)**
+- **Tanqueray 0.0%**
+  - Perfectly paired with tonic and a squeeze of lime.
+- **4**
+- **Tanqueray Flor de Seville 0.0%**
+  - Perfectly paired with tonic and a wedge of orange.
+- **4**
+- **Captain Morgan**
+  - Spiced Rum 0.0% Perfectly paired with Pepsi Max and a squeeze of lime.
+- **5**
+- **Freixenet 0.0%**
+  - Crafted through expert winemaking, this alcohol free sparkling wine delivers tropical aromos,
+    citrus hints and balanced bubbles for a refreshing experience.
+- **5.75**
+
+## HOT DRINKS
+
+- **Coffee**
+
+## SELECTION OF COFFEES
+
+- **Americano 3.75**
+- **Flat White 4**
+- **Cappuccino 4**
+- **Latte 4**
+- **Espresso 3.50**
+- **Mocha 4.25**
+
+## LIQUEUR COFFEES
+
+- **With your choice of**
+  - Jameson or Gran Marnier
+- **Something sweet**
+- **HOT CHOCOLATE 4.50**
+- **Luxury Hot Chocolate 5**
+- **Tea**
+- **SELECTION OF TEAS 3.75**
+- **Breakfast Tea / Earl Grey**
+  - Ginger & Lemon / Green Tea Peppermint Tea / Camomile

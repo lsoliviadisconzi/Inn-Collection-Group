@@ -1,0 +1,6 @@
+{
+  "_comment": "Optional per-venue overrides, keyed by the id discovered from the kafoodie/ folder name (slug of the folder name without '_full_menu'). Every field is optional: name, region, slug (website page), patterns (media regexes), menu_tokens (words a menu filename must contain), menu_files (explicit list, skips discovery). Only add an entry when discovery gets it wrong.",
+  "the-kingslodge-inn": { "region": "County Durham" },
+  "offshore": { "region": "Lancashire" },
+  "the-midland-hotel": { "name": "The Midland", "region": "Lancashire" }
+}
