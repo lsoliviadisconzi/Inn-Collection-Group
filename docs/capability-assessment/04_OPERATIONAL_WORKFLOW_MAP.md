@@ -101,10 +101,10 @@ flowchart TD
     class W3_1,W3_7 manual;
 ```
 
-* **Primary User**: Group Executive Chef / Food Safety Compliance Officer.
-* **Inputs**: `menu-explorer-data.js` compiled across all outlets.
-* **Outputs**: Real-time cross-site variance report highlighting discrepancies in allergen composition or nutritional values for identically named dishes.
-* **Operational Value**: `[Tested]`. Instantly isolates unapproved regional recipe modifications or data-entry errors across 29 properties in under one second.
+* **Primary User**: Group Executive Chef / Food Safety Compliance Officer (`[Inferred]` operational role).
+* **Inputs**: `menu-explorer-data.js` compiled across all outlets (offline static snapshot).
+* **Outputs**: Client-side comparison table of a generated data snapshot highlighting differences in available recipe, allergen, and nutritional declarations across properties.
+* **Operational Reality**: `[Tested]`. Evaluates dish signatures across the static dataset. Identifying differences does not establish whether those differences are current, approved, intentional, or operationally accurate; it requires human investigation to establish cause and operational significance. It does not provide live monitoring or automatic change detection.
 
 ---
 

@@ -39,10 +39,10 @@ graph TD
         UI_MOCK["Standalone Mockups & Demonstrations<br/>(Product Data, Launch Readiness, Crosscheck, Parfait)"]
     end
 
-    subgraph MissingIntegrations["Missing / Unimplemented External Systems"]
-        EXT_EPOS["EPOS / Till Systems<br/>(Zonal, Micros, Tevalis)"]
-        EXT_ERP["Procurement & Stock Control<br/>(FnB, Access, Birchman)"]
-        EXT_AUTH["Staff Directory & Single Sign-On<br/>(Okta, Azure AD)"]
+    subgraph MissingIntegrations["Missing / Unimplemented External Systems (Hypothetical Examples)"]
+        EXT_EPOS["EPOS / Till Systems<br/>(e.g., Zonal, Micros, Tevalis)"]
+        EXT_ERP["Procurement & Stock Control<br/>(e.g., FnB, Access, Birchman)"]
+        EXT_AUTH["Staff Directory & SSO<br/>(e.g., Okta, Azure AD)"]
     end
 
     KAFOODLE -.->|Manual / Scripted Crawl| CRAWL_KAF
@@ -103,13 +103,13 @@ graph TD
    * *The Gap*: `venue.json:coverage` explicitly tracks the percentage of printed dishes matched to recipes (`dishesMatchedToProduct / dishes`), but `launch-readiness.html` computes progress bars from temporary client-side checkboxes.
 
 ### 3.2 External System Disconnects
-1. **EPOS / Point-of-Sale Systems (Zonal, Micros, Tevalis)**:
+1. **EPOS / Point-of-Sale Systems (Industry examples: Zonal, Micros, Tevalis)**:
    * *Status*: `[Code-verified]` **Zero Integration**.
-   * *The Reality*: There is no API client, webhook, CSV export format, or database schema for EPOS PLU codes, till pricing, or modifier groups.
+   * *The Reality*: There is no API client, webhook, CSV export format, or database schema for EPOS PLU codes, till pricing, or modifier groups. (Note: Specific vendor platforms are cited purely as illustrative industry examples; no evidence exists that ICG uses these particular systems).
 2. **Kafoodie Upstream API (Live Sync)**:
    * *Status*: `[Code-verified]` **Static Crawl Snapshot**.
    * *The Reality*: The repository reads downloaded `.json` files in `kafoodie/`. If a development chef updates a recipe in Kafoodie, changes do not appear in the workspace until an engineer executes an external web crawl.
-3. **User Authentication & Role Governance**:
+3. **User Authentication & Role Governance (Industry examples: Okta, Azure AD)**:
    * *Status*: `[Code-verified]` **Zero Access Control**.
    * *The Reality*: The local `menu_review_server.py` does not enforce authentication. Any client on the local network can trigger file modifications via `/api/issues/fix-duplicates`.
 
@@ -119,7 +119,7 @@ graph TD
 
 | Dependency | Nature | Criticality | Risk Description | Fallback Mechanism |
 | :--- | :--- | :--- | :--- | :--- |
-| **Local SQLite Engine** | Runtime Binary | **High** | Corrupted database blocks review state and duplicate line fixing. | Local file backup; seed reviews available in `pages/seed_reviews.json`. |
+| **Local SQLite Engine** | Runtime Binary | **High** | Corrupted database blocks review state and duplicate line fixing. | Local file backup. `pages/seed_reviews.json` exists as a static single-record browser UI fallback if `/api/issues` fails, but the local Python server does not read it and does not provide automated database recovery (`[Code-verified]`). |
 | **PDF Extraction Quality** | Ingestion Feed | **High** | Poor OCR in external tools introduces repeated lines, truncated descriptions, or missed prices. | Manually audited and remediated in `menu-review.html`. |
 | **Kafoodie Outlet IDs** | Relational Anchor | **Critical** | Venues lacking an outlet ID (Dean Court, Bull's Head) cannot generate structured product data. | None currently; venues are excluded via `NO_KAFFODIE`. |
 | **Python Standard Library** | Execution Runtime | **Low** | Requires Python 3.8+ on the host system; zero pip package dependencies. | Highly resilient; runs on standard macOS/Linux system binaries. |

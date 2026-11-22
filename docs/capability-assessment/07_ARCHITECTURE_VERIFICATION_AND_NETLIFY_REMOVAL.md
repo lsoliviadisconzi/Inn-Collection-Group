@@ -124,7 +124,7 @@ Investigation into the relationship between `inncollectiongroup.com_root/menus_m
 
 ## 5. Deliverable D: Local Application Verification Report
 
-All core application services were verified through live execution tests following Netlify removal:
+Selected runtime and build-tool smoke tests passed following Netlify removal (with full functional mutation, persistence, and build-execution testing detailed in [Document 08](file:///Users/leandrodisconzi/repos/Inn-Collection-Group/docs/capability-assessment/08_TECHNICAL_BASELINE_CLOSURE_AND_EVIDENCE_AUDIT.md)):
 
 | Component Tested | Test Command / Method | Verification Target | Test Result |
 | :--- | :--- | :--- | :--- |

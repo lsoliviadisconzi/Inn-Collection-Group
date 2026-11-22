@@ -63,10 +63,12 @@ flowchart TD
 
 #### GAP-01: Authoritative Source of Truth Boundary
 * **Nature**: `[Code-verified]` Relational Ambiguity.
-* **Analysis**: As detailed in [Document 02](file:///Users/leandrodisconzi/repos/Inn-Collection-Group/docs/capability-assessment/02_DATA_MODEL_AND_ENTITY_RELATIONSHIPS.md), Kafoodie holds culinary recipe components, but physical printed menus hold guest descriptions, section placement, and retail prices.
-* **Required Decision**: Establish an official operational boundary:
-  1. **Kafoodie is authoritative** for ingredients, recipe yields, allergen declarations, and nutritional profiles.
-  2. **The Menu Export (`venue.json`) is authoritative** for guest-facing menu titles, descriptions, section groupings, prices, and venue availability.
+* **Existing Technical Behaviour**: The codebase ingests Kafoodie JSON crawls for recipes/allergens and Markdown menus for prices/descriptions, merging them offline into `venue.json`. Neither source is defined in software as globally authoritative over the other.
+* **Observed Source-Data Characteristics**: Kafoodie holds culinary recipe components, yields, and nutritional calculations, but printed menu cards hold guest-facing dish titles, descriptions, section groupings, and printed prices.
+* **Proposed Future Arrangement `[Proposed]`**:
+  1. *Proposed Kafoodie Role*: Authoritative for central recipes, allergen declarations, and nutritional profiles.
+  2. *Proposed Venue Export Role*: Derived canonical representation for guest-facing menu presentation, section placement, and localized pricing.
+* **Required Business Decision**: Formal ratification of this authority boundary must be confirmed by operational and business stakeholders (Executive Chef, F&B Operations, Legal/Compliance) before being hardcoded as business policy.
 
 #### GAP-02: Tracking Data Provenance for Incomplete Recipe Declarations
 * **Nature**: `[Database-verified]` Data Completeness & Verification Tracking.
