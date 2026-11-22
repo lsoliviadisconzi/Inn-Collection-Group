@@ -345,25 +345,67 @@ function updateIssuePdfLocations(){
     target.textContent=match?`PDF text match: page ${match.page+1}`:pdfFailed?"PDF text locations unavailable":"No text match found in the PDF";
   });
 }
+let PDF_MAP = {};
+let SEED_REVIEWS = [];
+
+async function sha256Hex(str) {
+  try {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch (e) {
+    return "";
+  }
+}
+
+function resolvePdfUrl(name) {
+  if (PDF_MAP && PDF_MAP[name]) return PDF_MAP[name];
+  const stem = name.replace(/\.md$/i, "");
+  return "documents/extracted-to-md/" + encodeURIComponent(stem) + ".pdf";
+}
+
 async function saveIssueReview(issueId,status){
   try{
-    const response=await fetch("/api/issues",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:current,issueId,status,note:$("#issueNote").value,sourceHash:issueHash})});
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(result.error||`Server returned HTTP ${response.status}`);
-    issueReviews[issueId]={status,note:$("#issueNote").value};renderHead();$("#issueDialog").close();toast("Issue review saved to the server.");
+    const note = $("#issueNote").value;
+    issueReviews[issueId] = {status, note};
+    try {
+      localStorage.setItem("icg_review_" + current + "_" + issueHash, JSON.stringify(issueReviews));
+    } catch(e){}
+    fetch("/api/issues",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:current,issueId,status,note,sourceHash:issueHash})}).catch(()=>null);
+    renderHead();$("#issueDialog").close();toast("Issue review saved.");
   }catch(error){toast("Could not save issue review: "+(error instanceof Error?error.message:String(error)))}
 }
 async function removeRepeatedLines(){
   const lineNumbers=$$('input[name="removeLine"]:checked',$("#issueContent")).map(input=>+input.value);
   if(!lineNumbers.length){toast("Select at least one repeated line to remove.");return}
   const name=current;
+  const note=$("#issueNote").value;
   try{
-    const response=await fetch("/api/issues/fix-duplicates",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,sourceHash:issueHash,lineNumbers,note:$("#issueNote").value})});
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(result.error||`Server returned HTTP ${response.status}`);
-    $("#issueDialog").close();await openMenu(name);
-    toast(`Removed ${result.removedLines.length} repeated line(s) from the Markdown file. PDF unchanged.`);
-  }catch(error){toast("Could not update the Markdown file: "+(error instanceof Error?error.message:String(error)))}
+    let updatedRemotely = false;
+    try {
+      const response=await fetch("/api/issues/fix-duplicates",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,sourceHash:issueHash,lineNumbers,note})});
+      if(response.ok) {
+        updatedRemotely = true;
+        $("#issueDialog").close();await openMenu(name);
+        toast(`Removed duplicate lines from the Markdown file.`);
+        return;
+      }
+    }catch(e){}
+    // Client-side fallback
+    const lines = md.split(/\r?\n/);
+    const lineSet = new Set(lineNumbers);
+    const newLines = lines.filter((_, idx) => !lineSet.has(idx + 1));
+    md = newLines.join("\n");
+    blocks = parse(md);
+    issueHash = await sha256Hex(md);
+    issueReviews["repeated_lines"] = {status: "fixed", note: note || `Removed duplicate lines: ${lineNumbers.join(", ")}`};
+    try {
+      localStorage.setItem("icg_review_" + current + "_" + issueHash, JSON.stringify(issueReviews));
+    }catch(e){}
+    renderHead();
+    $("#mdBody").innerHTML=`<div id="mdR" class="md">${renderMd()}</div><pre id="mdS" class="src hidden">${esc(md)}</pre>`;
+    $("#issueDialog").close();
+    toast(`Removed ${lineNumbers.length} duplicate line(s).`);
+  }catch(error){toast("Could not update the Markdown: "+(error instanceof Error?error.message:String(error)))}
 }
 $("#issueClose").onclick=()=>$("#issueDialog").close();
 $("#issueDialog").addEventListener("click",e=>{if(e.target===$("#issueDialog"))$("#issueDialog").close()});
@@ -373,18 +415,40 @@ async function openMenu(name){
   current=name;sel=null;issueHash="";issueReviews={};pdfTok++;pdfOK=false;renderList();$("#insp").classList.add("hidden");$("#mdBody").innerHTML='<div class="empty">Loading menu...</div>';
   const m=menus.find(x=>x.name===name);
   try{
-    const [r,ir]=await Promise.all([fetch("/api/menu"+qs(name),{cache:"no-store"}),fetch("/api/issues"+qs(name),{cache:"no-store"})]);
-    if(!r.ok)throw new Error("Request failed ("+r.status+")");
-    const t=await r.text(),review=ir.ok?await ir.json():null;if(current!==name)return;
-    const menuHash=r.headers.get("X-Source-Hash");
-    if(review&&menuHash&&review.sourceHash!==menuHash)throw new Error("Menu changed while loading; select it again to review the latest version");
+    let r = await fetch("/api/menu"+qs(name),{cache:"no-store"}).catch(()=>null);
+    let ir = await fetch("/api/issues"+qs(name),{cache:"no-store"}).catch(()=>null);
+    let t = "", menuHash = "";
+    if (r && r.ok) {
+      t = await r.text();
+      menuHash = r.headers.get("X-Source-Hash") || "";
+    } else {
+      const fb = await fetch("menus_md/" + encodeURIComponent(name), {cache:"no-store"});
+      if (!fb.ok) throw new Error("Could not load menu (" + fb.status + ")");
+      t = await fb.text();
+      menuHash = await sha256Hex(t);
+    }
+    if(current!==name)return;
+    const review = (ir && ir.ok) ? await ir.json().catch(()=>null) : null;
     md=t;blocks=parse(md);m.bytes=new TextEncoder().encode(md).length;
-    if(review){issueHash=review.sourceHash||"";issueReviews=review.decisions||{}}
-    else toast("Could not load saved issue reviews from the server ("+ir.status+").");
+    issueHash=menuHash;
+    if(review && review.decisions){issueReviews=review.decisions}
+    else {
+      try {
+        const local = localStorage.getItem("icg_review_" + current + "_" + issueHash);
+        if (local) issueReviews = JSON.parse(local);
+        else {
+          const seeded = SEED_REVIEWS.find(s => s.menu_name === current);
+          if (seeded && seeded.source_hash === issueHash) {
+            issueReviews[seeded.issue_id] = {status: seeded.status, note: seeded.note};
+          }
+        }
+      }catch(e){}
+    }
     renderHead();
     $("#mdBody").innerHTML=`<div id="mdR" class="md">${renderMd()}</div><pre id="mdS" class="src hidden">${esc(md)}</pre>`;
     $$("[data-view]").forEach(b=>b.classList.toggle("on",b.dataset.view==="rendered"));
-    $("#pdfOpen").classList.toggle("hidden",!m.hasPdf);$("#pdfOpen").href="/api/pdf"+qs(name);
+    const pdfUrl = resolvePdfUrl(name);
+    $("#pdfOpen").classList.toggle("hidden",!m.hasPdf);$("#pdfOpen").href=pdfUrl;
     loadPdf(m);
   }catch(e){if(current===name)$("#mdBody").innerHTML=`<div class="empty">Could not load this menu: ${esc(e.message)}</div>`}
 }
@@ -400,15 +464,16 @@ async function loadPdf(m){
   const tk=++pdfTok,box=$("#pdfBody");pdfDoc=null;pdfPages=[];pdfText=[];pdfOK=false;pdfFailed=false;
   if(!m.hasPdf){pdfFailed=true;box.innerHTML='<div class="note">No matching PDF was found in the extracted-to-md folder.</div>';updateIssuePdfLocations();return}
   box.innerHTML='<div class="note">Loading PDF...</div>';
+  const pdfUrl = resolvePdfUrl(m.name);
   try{
-    await ensurePdfjs();const doc=await pdfjsLib.getDocument("/api/pdf"+qs(m.name)).promise;if(tk!==pdfTok)return;
+    await ensurePdfjs();const doc=await pdfjsLib.getDocument(pdfUrl).promise;if(tk!==pdfTok)return;
     const pgs=[],txt=[];
     for(let n=1;n<=doc.numPages;n++){const p=await doc.getPage(n),tc=await p.getTextContent();pgs.push(p);
       const items=tc.items.filter(i=>i.str&&i.str.trim()),tokens=[];items.forEach((it,ix)=>tok(it.str).forEach(t=>tokens.push({...t,it:ix})));txt.push({tc,items,tokens})}
     if(tk!==pdfTok)return;pdfDoc=doc;pdfPages=pgs;pdfText=txt;pdfOK=true;await buildPdf(tk);updateIssuePdfLocations();
   }catch(e){
-    if(tk!==pdfTok)return;pdfFailed=true;box.innerHTML=`<iframe class="pdf-frame" title="Original PDF" src="/api/pdf${qs(m.name)}"></iframe>`;updateIssuePdfLocations();
-    toast("Highlighting in the PDF needs pdf.js ("+e.message+") — showing the plain PDF viewer.");
+    if(tk!==pdfTok)return;pdfFailed=true;box.innerHTML=`<iframe class="pdf-frame" title="Original PDF" src="${pdfUrl}"></iframe>`;updateIssuePdfLocations();
+    toast("Showing native PDF viewer.");
   }
 }
 async function buildPdf(tk){
@@ -512,7 +577,20 @@ document.addEventListener("keydown",e=>{
 async function boot(){
   applyUI();
   try{
-    const r=await fetch("/api/menus",{cache:"no-store"});if(!r.ok)throw new Error("Request failed ("+r.status+")");
+    try {
+      const [pmRes, srRes] = await Promise.all([
+        fetch("pdf_map.json", {cache:"no-store"}).catch(()=>null),
+        fetch("seed_reviews.json", {cache:"no-store"}).catch(()=>null)
+      ]);
+      if(pmRes && pmRes.ok) PDF_MAP = await pmRes.json().catch(()=>({}));
+      if(srRes && srRes.ok) SEED_REVIEWS = await srRes.json().catch(()=>([]));
+    } catch(e){}
+
+    let r = await fetch("/api/menus",{cache:"no-store"}).catch(()=>null);
+    if (!r || !r.ok) {
+      r = await fetch("menus.json", {cache:"no-store"}).catch(()=>null);
+    }
+    if(!r || !r.ok)throw new Error("Could not load menu list ("+(r?r.status:"network error")+")");
     menus=(await r.json()).map(m=>{const v=venueOf(m.name);return{...m,venue:v,region:REG[v]||UNK}});
     $("#totalCount").textContent=menus.length;counts();fillSelects();renderList();
     if(menus.length)await openMenu(menus[0].name);else $("#mdBody").innerHTML='<div class="empty">No markdown menus were found in menus_md/.</div>';

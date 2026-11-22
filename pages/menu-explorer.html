@@ -1,1 +1,170 @@
-Menu explorer — Inn Collection Group.html
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Menu explorer — Inn Collection Group</title>
+<style>
+:root{color-scheme:dark;--bg:#171513;--card:#1f1c19;--sub:#191714;--bd:#35312c;--w:#ece7df;--g:#8c867d;--gh:#b9b3a9;--ac:#e07b4a;--ok:#85c99c;--err:#f28b82;--warn:#e6b450;--info:#8ab4f8;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root:not([data-theme=dark]){color-scheme:light;--bg:#f6f3ee;--card:#fff;--sub:#efebe4;--bd:#d9d2c7;--w:#231f1b;--g:#7a746b;--gh:#514c45;--ac:#c4571f;--ok:#2f7d4d;--err:#c43c33;--warn:#9a6b00;--info:#2a5bd7}}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--w);font:13px/1.5 var(--sans);display:flex;flex-direction:column;overflow:hidden}
+button,input,select{font:inherit;color:inherit}button,select{cursor:pointer}:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+header{flex:none;background:var(--card);border-bottom:1px solid var(--bd);padding:10px clamp(12px,2vw,24px)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sp{flex:1}.f{margin-top:10px}
+.k{display:block;color:var(--ac);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase}.t{font:600 20px/1.15 var(--serif)}
+.nav{display:flex;gap:2px;padding:2px;border:1px solid var(--bd);border-radius:999px;margin-left:12px}
+.nav button,.nav a{border:0;background:none;padding:3px 12px;border-radius:999px;color:var(--gh);font-size:12px;text-decoration:none}.nav button.on,.nav a.on{background:rgba(224,123,74,.18);color:var(--w)}
+.in,.btn{border:1px solid var(--bd);background:var(--bg);border-radius:6px;padding:6px 10px}.in{flex:1 1 200px;min-width:150px;max-width:320px}.sel{max-width:230px}
+.btn{padding:4px 10px;font-size:12px}.btn:hover{border-color:var(--g)}.btn.on{background:var(--ac);border-color:var(--ac);color:#111;font-weight:600}
+.chip{border:1px solid var(--bd);background:var(--bg);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--gh)}.chip.on{border-color:var(--err);color:var(--err);background:rgba(242,139,130,.1)}
+.lab{font:11px var(--mono);color:var(--g);text-transform:uppercase;letter-spacing:.08em}
+main{flex:1;min-height:0;display:flex}
+.list{flex:1;min-width:0;overflow-y:auto;padding:14px clamp(12px,2vw,24px) 40px}
+.det{width:min(420px,40%);flex:none;border-left:1px solid var(--bd);background:var(--card);overflow-y:auto;padding:16px}
+.det:empty{display:none}
+h2{font:600 16px var(--serif);margin:18px 0 8px;display:flex;gap:8px;align-items:baseline}h2 small{font:11px var(--mono);color:var(--g)}h2:first-child{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:0;text-align:left;display:block;width:100%;overflow:hidden}.c:hover{border-color:var(--g)}.c.sel{border-color:var(--ac)}
+.c b{font-weight:600;display:block;margin-bottom:4px}
+.c .bd{padding:10px 12px}
+.c img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--sub);border-bottom:1px solid var(--bd)}
+.c .ph{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:4/3;background:var(--sub);border-bottom:1px solid var(--bd);color:var(--g);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.tg{display:flex;flex-wrap:wrap;gap:3px}.a{font:10.5px var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--bd);color:var(--gh)}.a.m{border-style:dashed;color:var(--warn)}.a.x{border-color:var(--err);color:var(--err)}
+.kc{color:var(--g);font-size:12px;margin-top:4px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}.kp div{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px}.kp b{display:block;font:600 20px var(--serif)}
+table{border-collapse:collapse;width:100%}th,td{padding:5px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}th{font:10.5px var(--mono);color:var(--g);text-transform:uppercase;position:sticky;top:0;background:var(--bg);z-index:1}
+td.cc,th.cc{text-align:center}.wrap{overflow-x:auto;border:1px solid var(--bd);border-radius:8px;background:var(--card)}
+.y{color:var(--err)}.mb{color:var(--warn)}.d td{background:rgba(230,180,80,.07)}
+.nut{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;margin:6px 0}.hi{color:var(--err)}.me{color:var(--warn)}.lo{color:var(--ok)}
+.xb{float:right}
+details{margin:2px 0}summary{cursor:pointer;color:var(--gh);font-size:12px}details>:not(summary){margin-left:14px}.tr{width:100%}.tr td{white-space:normal;vertical-align:top;padding:3px 8px;border-bottom:1px solid var(--bd);word-break:break-word}.tr td:first-child{font:11px var(--mono);color:var(--g);width:34%}a{color:var(--info)}.bar{height:6px;background:var(--bd);border-radius:3px;min-width:60px}.bar i{display:block;height:100%;border-radius:3px;background:var(--ac)}.pill{font:11px var(--mono);padding:1px 8px;border:1px solid var(--bd);border-radius:999px;color:var(--gh)}pre{white-space:pre-wrap;word-break:break-word;font:11px var(--mono);background:var(--sub);padding:8px;border-radius:6px;max-height:300px;overflow:auto}.det{width:min(520px,45%)}.sm{color:var(--g);font-size:12px}
+.dp{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);margin:0 0 10px}
+@media(max-width:800px){main{flex-direction:column}.det{width:100%;border-left:0;border-top:1px solid var(--bd);max-height:55%}}
+
+.g{--ink:#161616;--mut:#6b6b68;--line:#ececea;--blue:#1565c0;--grn:#2e7d32;max-width:700px;margin:0 auto;background:#fff;color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.14),0 18px 48px rgba(0,0,0,.22);font:14px/1.45 var(--sans)}
+.g button{color:inherit}
+.gm{background:#141414;color:#fff;text-align:center;padding:18px 20px 16px}.gm b{display:block;font-weight:500;letter-spacing:.28em;font-size:15px;text-transform:uppercase}.gm span{display:block;margin-top:3px;font-size:10.5px;letter-spacing:.22em;color:#9c9c98;text-transform:uppercase}
+.gp{display:flex;align-items:center;gap:10px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:13.5px}.gp svg{flex:none}.gp b{color:var(--blue);font-weight:600}.gp .v{color:var(--mut);flex:1;min-width:0}
+.sw{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:13px}.sw i{width:34px;height:18px;border-radius:9px;background:#b9dca0;position:relative}.sw i:after{content:"";position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#6cbb3c}
+.gv{height:92px;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 160% at 50% 0,#2f5744,#1d352a);color:#fff;font:700 38px/1 var(--serif);letter-spacing:.03em;text-transform:uppercase;text-align:center;padding:0 16px}
+.gs{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;background:#f7f7f5;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}.gs b{font-size:16px;font-weight:700}.gs small{color:#6cbb3c;font-size:12.5px;font-weight:600;display:flex;gap:5px;align-items:center}
+.gr{display:grid;grid-template-columns:24px 1fr auto;gap:0 12px;padding:16px 20px 17px;border-bottom:1px solid var(--line)}
+.gi{width:22px;height:22px;border-radius:50%;background:#6cbb3c;display:grid;place-items:center;margin-top:1px}.gi.w{background:#e6a117}
+.gn1{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}.gn1 b{font-size:17px;font-weight:650;letter-spacing:-.005em}.gn1 span{font-size:13px;color:var(--mut)}
+.gd{font-size:13px;color:var(--mut);margin-top:2px}
+.gph{width:64px;height:64px;border-radius:10px;object-fit:cover;background:#f1f1ef;grid-row:1/3;grid-column:3}
+.gb{grid-column:2/4;margin-top:11px}
+.gt{display:flex;gap:6px;flex-wrap:wrap}.gt button{border:0;border-top:2px solid transparent;background:#f1f1ef;padding:7px 12px 7px 16px;border-radius:6px;font-size:13px;display:flex;align-items:center;gap:8px;min-width:104px;justify-content:space-between}.gt button:hover{background:#e9e9e6}.gt button:after{content:"";border:4px solid transparent;border-left-color:#999;transition:transform .15s}.gt button.on{background:#fff;border-top-color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.12);font-weight:600}.gt button.on:after{border-left-color:transparent;border-top-color:var(--ink);transform:translateY(3px)}
+.gx{padding-top:13px}.gl{display:grid;grid-template-columns:86px 1fr;gap:8px;margin-bottom:9px;align-items:start}.gl>b{font-size:12.5px;padding-top:3px}
+.gc{display:flex;flex-wrap:wrap;gap:6px}.gc span{border:1px solid var(--blue);color:var(--blue);border-radius:5px;padding:2px 9px;font-size:12.5px;background:#f5f9ff}.gc .m{border-style:dashed;border-color:#8aa7d1;color:#4f6b94;background:#fff}.gc .d{border-color:var(--grn);color:var(--grn);background:#f4faf4}
+.gm0{font-size:13px;color:var(--mut)}.gwarn{font-size:12.5px;color:#8a5a00;background:#fff6e0;border-radius:6px;padding:6px 10px;margin-bottom:8px}
+.gseg{display:inline-flex;background:#f1f1ef;border-radius:7px;padding:2px;margin:0 0 9px}.gseg button{border:0;background:none;font-size:12px;padding:3px 10px;border-radius:5px;color:var(--mut)}.gseg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.gn{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:6px}.gn div{border:1px solid #dcdcd8;border-radius:6px;overflow:hidden;text-align:center}.gn i{display:block;font-style:normal;font-size:11.5px;padding:6px 2px;background:#fafaf8;color:#444}.gn b{display:block;font-size:14px;padding:7px 2px;font-variant-numeric:tabular-nums;border-top:1px solid #ececea;border-bottom:1px solid #ececea}.gn u{display:block;text-decoration:none;font-size:12.5px;padding:6px 2px;font-variant-numeric:tabular-nums;color:#444}.gn .h u{background:#c62828;color:#fff;font-weight:600}.gn .md u{background:#f6b93b;color:#3a2a00;font-weight:600}
+.gf{font-size:11.5px;color:var(--mut);margin-top:7px}.g .gz{padding:34px 20px;text-align:center;color:var(--mut)}
+@media(max-width:520px){.gv{font-size:28px}.gl{grid-template-columns:1fr}}
+</style></head><body>
+<header><div class="row"><div><span class="k">Inn Collection Group</span><div class="t">Menu explorer</div></div>
+<nav class="nav" id="nav"><button data-v="menu" class="on">Menu</button><button data-v="guest">Guest view</button><button data-v="mx">Allergen matrix</button><button data-v="cmp">Compare venues</button><button data-v="info">Venue &amp; menu data</button><button data-v="ref">Allergen reference</button></nav><nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a href="launch-readiness.html">Launch readiness</a><a href="product-data.html">Product data</a><a class="on" href="menu-explorer.html" aria-current="page">Menu explorer</a></nav><span class="sp"></span><span class="sm" id="cnt"></span></div>
+<div class="row f"><input id="q" class="in" type="search" placeholder="Search dishes…"><select id="ve" class="in sel"></select><select id="gr" class="in sel"></select><label class="sm"><input type="checkbox" id="may"> may-contain counts</label></div>
+<div class="row f" id="fx"><span class="lab">Free from</span></div></header>
+<main><div class="list" id="L"></div><aside class="det" id="D"></aside></main>
+<script src="menu-explorer-data.js"></script>
+<script>
+const DATA=window.MENU_DATA;
+const T=DATA.allergens;
+const A14=["Gluten","Crustaceans","Eggs","Fish","Peanuts","Soya","Milk","Nuts","Sesame seeds","Sulphur dioxide","Molluscs","Celery","Mustard","Lupin"];
+const $=s=>document.querySelector(s),E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const st={v:"menu",ve:0,gr:"all",q:"",ex:new Set(),may:false,sel:null,only:false};
+const NUT={energy:"Energy",fat:"Fat",saturated_fat:"Saturates",carbohydrate:"Carbohydrate",sugar:"Sugars",fibre:"Fibre",protein:"Protein",salt:"Salt"};
+const ALL=[];
+DATA.venues.forEach((v,vi)=>v.groups.forEach(g=>g.menus.forEach(m=>m.recipes.forEach(r=>{
+ const al=(r.allergens||[]).map(id=>T[id]).filter(Boolean);
+ const i={r,al,v:v.filter_name,vi,g:g.name,mn:m.name,n:r.name,d:r.description,c:new Set(),m:new Set(),s:[],tg:(r.tags||[]).map(t=>t.name),ns:r.nutrition_per_serving||{},n100:r.nutrition||{}};
+ al.forEach(a=>{const may=a.is_may_contain||a.isMayContain;const p=a.name.split(":")[0].trim();(may?i.m:i.c).add(p);if(a.name.includes(":"))i.s.push([a.name,may,a])});
+ i.m.forEach(x=>{if(i.c.has(x))i.m.delete(x)});i.k=v.filter_name+"|"+m.name+"|"+r.id;ALL.push(i)}))));
+const norm=n=>n.toLowerCase().replace(/\bmains?( courses?)?\b/,"mains");
+const V=()=>DATA.venues[st.ve];
+function items(){return ALL.filter(i=>i.vi===st.ve&&(st.gr==="all"||norm(i.g)===st.gr)&&(!st.q||i.n.toLowerCase().includes(st.q))&&![...st.ex].some(a=>i.c.has(a)||(st.may&&i.m.has(a))))}
+const als=i=>[...i.c].map(a=>`<span class="a x">${E(a)}</span>`).join("")+[...i.m].map(a=>`<span class="a m">${E(a)}?</span>`).join("");
+const nut=(n,k)=>{const v=n&&n[k];return Array.isArray(v)?{quantity:v[0],unit:v[1],est:v[2],actual_ratio:v[3],doze:v[4]}:v};
+const kcal=i=>{const e=nut(i.ns,"energy");return e?Math.round(e.quantity)+" kcal":"—"};
+const photo=i=>i.r.photo?`<img src="${E(i.r.photo)}" alt="${E(i.n)}" loading="lazy" decoding="async">`:'<div class="ph">No photo</div>';
+function init(){$("#ve").innerHTML=DATA.venues.map((v,i)=>`<option value="${i}">${E(v.filter_name)}</option>`).join("");
+ const gs=[...new Set(DATA.venues.flatMap(v=>v.groups.map(g=>norm(g.name))))];
+ $("#gr").innerHTML='<option value="all">All menu groups</option>'+gs.map(g=>`<option>${E(g)}</option>`).join("");
+ $("#fx").innerHTML+=A14.map(a=>`<button class="chip" data-a="${E(a)}">${E(a)}</button>`).join("");
+ $("#ve").onchange=e=>{st.ve=+e.target.value;st.sel=null;draw()};$("#gr").onchange=e=>{st.gr=e.target.value;st.sel=null;draw()};
+ $("#q").oninput=e=>{st.q=e.target.value.toLowerCase();draw()};$("#may").onchange=e=>{st.may=e.target.checked;draw()};
+ $("#fx").onclick=e=>{const a=e.target.dataset.a;if(!a)return;st.ex.has(a)?st.ex.delete(a):st.ex.add(a);e.target.classList.toggle("on");draw()};
+ $("#nav").onclick=e=>{const v=e.target.dataset.v;if(!v)return;st.v=v;[...$("#nav").children].forEach(b=>b.classList.toggle("on",b===e.target));st.sel=null;draw()};
+ $("#L").onclick=e=>{const c=e.target.closest("[data-k]");if(c){st.sel=c.dataset.k;draw()}if(e.target.closest("[data-o]")){st.only=!st.only;draw()}};
+ $("#D").onclick=e=>{if(e.target.closest(".xb")){st.sel=null;draw()}if(e.target.closest(".cp")){const i=ALL.find(x=>x.k===st.sel);try{navigator.clipboard.writeText(JSON.stringify(res(i.r),null,2));e.target.textContent="Copied"}catch(_){e.target.textContent="Copy failed"}}};draw()}
+// resolve allergen ids back to their definitions for display
+function res(r){const o={...r};for(const k of ["allergens","all_allergens","inherited_allergens"]){const v=r[k];o[k]=v==="="?"(same as allergens)":Array.isArray(v)?v.map(id=>T[id]||id):v}return o}
+function tree(o,d=0){if(o===null||o===undefined)return '<span class="sm">null</span>';
+ if(typeof o==="string"){return /^https?:\/\//.test(o)?`<a href="${E(o)}" target="_blank" rel="noopener noreferrer">${E(o.length>70?o.slice(0,67)+"…":o)}</a>`:E(o)||'<span class="sm">""</span>'}
+ if(typeof o!=="object")return `<b style="font-weight:500">${E(o)}</b>`;
+ if(Array.isArray(o)){if(!o.length)return '<span class="sm">[ ]</span>';if(o.every(x=>x===null||typeof x!=="object")&&o.length<9&&o.every(x=>String(x).length<50))return o.map(x=>`<span class="pill">${E(x)}</span>`).join(" ");
+  return `<details ${d<1?"open":""}><summary>${o.length} items</summary>${o.map((x,i)=>typeof x==="object"&&x?`<details><summary>${i} · ${E(x.name||x.id||x.class||x.recipe_id||"")}</summary>${tree(x,d+1)}</details>`:`<div>${tree(x)}</div>`).join("")}</details>`}
+ const k=Object.keys(o);if(!k.length)return '<span class="sm">{ }</span>';
+ return `<table class="tr">${k.map(x=>`<tr><td>${E(x)}</td><td>${tree(o[x],d+1)}</td></tr>`).join("")}</table>`}
+function draw(){const it=items(),v=st.v;$("#cnt").textContent=["menu","mx","guest"].includes(v)?it.length+" dishes":"";
+ $("#fx").style.display=["menu","mx","guest"].includes(v)?"":"none";$("#q").style.display=["ref"].includes(v)?"none":"";
+ $("#ve").style.display=v==="cmp"||v==="ref"?"none":"";$("#gr").style.display=v==="ref"?"none":"";
+ $("#L").innerHTML=v==="guest"?guest(it):v==="menu"?menu(it):v==="mx"?matrix(it):v==="cmp"?cmp():v==="info"?info():ref();
+ const s=st.sel&&ALL.find(i=>i.k===st.sel);$("#D").innerHTML=s?detail(s):""}
+function menu(it){const by={};it.forEach(i=>(by[i.g]??=[]).push(i));const ev=it.filter(i=>nut(i.ns,"energy"));
+ let h=`<div class="kp"><div class="sm">Dishes<b>${it.length}</b></div><div class="sm">Menu groups<b>${Object.keys(by).length}</b></div><div class="sm">No declared allergens<b>${it.filter(i=>!i.c.size).length}</b></div><div class="sm">Avg energy<b>${ev.length?Math.round(ev.reduce((s,i)=>s+nut(i.ns,"energy").quantity,0)/ev.length):"—"} kcal</b></div></div>`;
+ for(const g in by)h+=`<h2>${E(g)} <small>${E(by[g][0].mn)} · ${by[g].length}</small></h2><div class="grid">`+by[g].map(i=>`<button class="c ${st.sel===i.k?"sel":""}" data-k="${E(i.k)}">${photo(i)}<div class="bd"><b>${E(i.n)}</b><div class="tg">${als(i)||'<span class="sm">No allergens declared</span>'}</div><div class="kc">${kcal(i)} per serving${i.tg.length?" · "+E(i.tg.join(", ")):""}</div></div></button>`).join("")+"</div>";
+ return h||'<p class="sm">No dishes match these filters.</p>'}
+function matrix(it){let h='<div class="wrap"><table><tr><th>Dish</th><th>Group</th>'+A14.map(a=>`<th class="cc" title="${a}">${a.slice(0,4)}</th>`).join("")+"</tr>";
+ it.forEach(i=>h+=`<tr style="cursor:pointer" data-k="${E(i.k)}"><td>${E(i.n)}</td><td class="sm">${E(i.g)}</td>`+A14.map(a=>`<td class="cc">${i.c.has(a)?'<span class="y">●</span>':i.m.has(a)?'<span class="mb">◐</span>':""}</td>`).join("")+"</tr>");
+ return h+'</table></div><p class="sm">● contains · ◐ may contain. Click a row for details.</p>'}
+function cmp(){const g=st.gr==="all"?null:st.gr,names=new Map(),N=DATA.venues.length;
+ ALL.forEach(i=>{if(g&&norm(i.g)!==g)return;if(st.q&&!i.n.toLowerCase().includes(st.q))return;const k=i.mn+"|"+i.n;if(!names.has(k))names.set(k,Array(N).fill(null));names.get(k)[i.vi]=i});
+ let rows=[...names.entries()].map(([k,arr])=>{const sig=i=>i?[...i.c].sort().join()+"/"+[...i.m].sort().join()+"/"+(nut(i.ns,"energy")?.quantity??""):"∅";return{k,arr,diff:new Set(arr.map(sig)).size>1}});
+ const nd=rows.filter(r=>r.diff).length;if(st.only)rows=rows.filter(r=>r.diff);
+ let h=`<div class="row" style="margin-bottom:10px"><span class="sm">${names.size} dishes compared · <b>${nd}</b> differ between venues</span><button class="btn ${st.only?"on":""}" data-o="1">Differences only</button></div><div class="wrap"><table><tr><th>Dish</th>`+DATA.venues.map(v=>`<th>${E(v.filter_name)}</th>`).join("")+"</tr>";
+ rows.forEach(r=>{h+=`<tr class="${r.diff?"d":""}"><td>${E(r.k.split("|")[1])}<div class="sm">${E(r.k.split("|")[0])}</div></td>`+r.arr.map(i=>i?`<td style="white-space:normal;min-width:190px;cursor:pointer" data-k="${E(i.k)}"><div class="tg">${als(i)||'<span class="sm">none</span>'}</div><div class="kc">${kcal(i)}</div></td>`:'<td class="sm">not on menu</td>').join("")+"</tr>"});
+ return h+"</table></div>"}
+function info(){const v=V();const q=st.q;let h=`<h2>${E(v.filter_name)} <small>${E(v.file)}</small></h2><div class="sm">Source: ${tree(v.base_url)} · <code>${E(v.path)}</code></div>
+ <h2>Outlet</h2>${tree(v.outlet)}<h2>Business</h2>${tree(v.business)}<h2>Tags available <small>${v.tags.length}</small></h2>${tree(v.tags)}
+ <h2>Menu groups <small>${v.groups.length}</small></h2>`;
+ v.groups.filter(g=>(st.gr==="all"||norm(g.name)===st.gr)&&(!q||g.name.toLowerCase().includes(q))).forEach(g=>{const meta=v.menu_groups.find(x=>String(x.id)===g.id)||{};
+  h+=`<details><summary><b>${E(g.name)}</b> · id ${g.id} · ${g.menus.map(m=>m.recipes.length).join(", ")} dishes</summary><h2>Group</h2>${tree({...meta,url:g.url})}`;
+  g.menus.forEach(m=>{const mm={...m};delete mm.recipes;h+=`<h2>Menu: ${E(m.name)} <small>id ${m.id}</small></h2>${tree(mm)}`});
+  h+=`<h2>Page text <small>${g.visible_text.length} lines</small></h2>${tree(g.visible_text.filter(x=>x.trim()))}`;
+  if(g.other.length)h+=`<h2>Other API payloads</h2>${tree(g.other)}`;h+="</details>"});
+ return h}
+function ref(){const v=DATA.venues[0];const defs=Object.values(T);return `<h2>Allergen definitions <small>${defs.length}</small></h2><div class="wrap"><table><tr><th>Name</th><th>ID</th><th>Abbr</th><th>Icon</th><th>Order</th><th>May contain</th><th>Legacy</th><th>Implies</th><th>Primary</th><th>Description</th></tr>`+defs.map(a=>`<tr><td>${E(a.name)}</td><td>${E(a.id)}</td><td>${E(a.abbr)}</td><td>${E(a.icon)}</td><td>${a.sortorder}</td><td>${a.is_may_contain}</td><td>${a.is_legacy}</td><td>${E(a.implies)}</td><td>${E(a.primary_id??"")}</td><td style="white-space:normal;min-width:260px">${E(a.description)}</td></tr>`).join("")+`</table></div><h2>Tags <small>${v.tags.length}</small></h2>${tree(v.tags)}<h2>Allergen objects used by dishes <small>${defs.length} unique</small></h2>${tree(defs)}`}
+function nutTable(n,label){const ks=Object.keys(n||{});if(!ks.length)return "";return `<h2>Nutrition <small>${label}</small></h2><table class="tr"><tr><td>Nutrient</td><td>Amount</td><td>Ref. intake</td><td>% of ref.</td><td>Level</td></tr>${ks.map(k=>{const x=nut(n,k);const r=x.actual_ratio;return `<tr><td>${E(NUT[k]||k)}</td><td><b style="font-weight:600">${x.quantity} ${E(x.unit)}</b></td><td>${x.est??""}</td><td><div class="bar"><i style="width:${Math.min(r||0,100)}%"></i></div><span class="sm">${r==null?"":r.toFixed(1)+"%"}</span></td><td class="${x.doze==="high"?"hi":x.doze==="medium"?"me":x.doze?"lo":""}">${E(x.doze??"")}</td></tr>`}).join("")}</table>`}
+function detail(i){const r=i.r;
+ return `<button class="btn xb">Close</button> <button class="btn xb cp" style="margin-right:6px">Copy JSON</button><span class="lab">${E(i.v)} · ${E(i.g)} · ${E(i.mn)}</span><div class="t" style="margin:4px 0 8px">${E(i.n)}</div>
+ <div class="tg" style="margin-bottom:8px"><span class="pill">recipe ${r.id}</span><span class="pill">menu ${r.menu_id}</span><span class="pill">outlet ${r.outlet_id}</span><span class="pill">sort ${r.sort_order}</span><span class="pill">${E(r.preorder_availability_status)}</span><span class="pill">public: ${r.isPublic}</span><span class="pill">allergen not set: ${r.is_pw_allergen_not_set}</span>${(r.delivery_methods||[]).map(x=>`<span class="pill">${E(x)}</span>`).join("")}</div>
+ ${r.photo?`<img class="dp" src="${E(r.photo)}" alt="${E(i.n)}" loading="lazy" decoding="async">`:""}${r.description?`<p>${E(r.description)}</p>`:""}
+ <h2>Contains</h2><div class="tg">${[...i.c].map(a=>`<span class="a x">${E(a)}</span>`).join("")||'<span class="sm">None declared</span>'}</div>
+ ${i.m.size?`<h2>May contain</h2><div class="tg">${[...i.m].map(a=>`<span class="a m">${E(a)}</span>`).join("")}</div>`:""}
+ ${i.s.length?`<h2>Specific types</h2><div class="tg">${i.s.map(([a,m])=>`<span class="a ${m?"m":""}">${E(a.replace(": "," › "))}</span>`).join("")}</div>`:""}
+ ${nutTable(i.ns,"per serving")}${nutTable(i.n100,"per 100 g")}
+ ${i.tg.length?`<h2>Tags</h2>${tree(r.tags)}`:""}
+ <h2>All fields <small>every value on this record</small></h2>${tree(res(r))}
+ <h2>Raw JSON</h2><details><summary>Show</summary><pre>${E(JSON.stringify(res(r),null,2))}</pre></details>`}
+
+const gOpen={};let gPer="serving";
+const gOrd=[["energy","Calories"],["fat","Fat"],["saturated_fat","Sat. Fat"],["carbohydrate","Carbs"],["sugar","Sugar"],["fibre","Fibre"],["protein","Protein"],["salt","Salt"]];
+const gF=(k,x)=>{const q=Number(x.quantity);return(x.unit==="kcal"?Math.round(q):k==="salt"?q.toFixed(2):q.toFixed(1))+" "+x.unit};
+const gTick='<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.4 4.6-5"/></svg>';
+function gPanel(i,t){
+ if(t==="all"){const c=[],m=[];i.al.forEach(a=>((a.is_may_contain||a.isMayContain)?m:c).push(a.name));const u=x=>[...new Set(x)];
+  return(i.r.is_pw_allergen_not_set?'<div class="gwarn">Allergen information has not been set for this dish.</div>':"")+`<div class="gl"><b>Contains:</b><div class="gc">${u(c).map(a=>`<span>${E(a)}</span>`).join("")||'<em class="gm0">No declared allergens</em>'}</div></div>${m.length?`<div class="gl"><b>May contain:</b><div class="gc">${u(m).filter(a=>!c.includes(a)).map(a=>`<span class="m">${E(a)}</span>`).join("")}</div></div>`:""}`}
+ if(t==="diet"){const g={};(i.r.tags||[]).forEach(x=>(g[x.group||"Dietary"]??=[]).push(x.name));const k=Object.keys(g);
+  return k.length?k.map(n=>`<div class="gl"><b>${E(n)}:</b><div class="gc">${g[n].map(x=>`<span class="d">${E(x)}</span>`).join("")}</div></div>`).join(""):'<span class="gm0">No dietary tags declared for this dish.</span>'}
+ const n=gPer==="serving"?i.ns:i.n100;if(!Object.keys(n||{}).length)return'<span class="gm0">No nutrition data available.</span>';
+ return`<div class="gseg"><button data-gp="serving" class="${gPer==="serving"?"on":""}">Per serving</button><button data-gp="100" class="${gPer==="100"?"on":""}">Per 100 g</button></div><div class="gn">${gOrd.map(([k,l])=>{const x=nut(n,k);if(!x)return"";const r=x.actual_ratio;return`<div class="${x.doze==="high"?"h":x.doze==="medium"?"md":""}"><i>${l}</i><b>${gF(k,x)}</b><u>${r==null?"–":Math.round(r)+"%"}</u></div>`}).join("")}</div><div class="gf">Values ${gPer==="serving"?"per serving":"per 100 g"}. % of an adult’s reference intake. Red = high, amber = medium.</div>`}
+function gRow(i){const o=gOpen[i.k],w=[...st.ex].some(a=>i.m.has(a));
+ return`<div class="gr" data-r="${E(i.k)}"><div class="gi ${w?"w":""}" title="${w?"May contain a filtered allergen":"Matches your preferences"}">${w?'<b style="color:#fff;font-size:13px">!</b>':gTick}</div><div><div class="gn1"><b>${E(i.n)}</b><span>${kcal(i)}</span></div>${i.d?`<div class="gd">${E(i.d)}</div>`:""}</div>${i.r.photo?`<img class="gph" src="${E(i.r.photo)}" alt="" loading="lazy" onerror="this.remove()">`:""}<div class="gb"><div class="gt">${[["diet","Dietary"],["all","Allergens"],["nut","Nutrition"]].map(([t,l])=>`<button class="${o===t?"on":""}" data-gk="${E(i.k)}" data-gt="${t}">${l}</button>`).join("")}</div>${o?`<div class="gx">${gPanel(i,o)}</div>`:""}</div></div>`}
+function guest(it){const by={};it.forEach(i=>(by[i.g]??=[]).push(i));const ex=[...st.ex];
+ let h=`<div class="g"><div class="gm"><b>${E(V().filter_name)}</b><span>Inn Collection Group · Guest menu</span></div><div class="gp"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2" stroke-linecap="round"><path d="M4 3l16 16M20 3L4 19"/></svg><span class="v"><b>Food preferences:</b> ${ex.length?"Avoiding "+E(ex.join(", ")):"None"}</span><span class="sw">Filter ${ex.length?"on":"off"}<i></i></span></div>`;
+ for(const g in by){const tot=ALL.filter(x=>x.vi===st.ve&&x.g===g).length;h+=`<div class="gv">${E(g)}</div><div class="gs"><b>${E(by[g][0].mn)}</b><small>${by[g].length}/${tot}</small></div>`+by[g].map(gRow).join("")}
+ return h+(it.length?"":'<div class="gz">No dishes match these filters.</div>')+"</div>"}
+$("#L").addEventListener("click",e=>{const p=e.target.closest("[data-gp]");if(p){gPer=p.dataset.gp;draw();return}
+ const b=e.target.closest("[data-gk]");if(!b)return;const k=b.dataset.gk;gOpen[k]=gOpen[k]===b.dataset.gt?null:b.dataset.gt;
+ const r=b.closest(".gr"),i=ALL.find(x=>x.k===k);if(r&&i)r.outerHTML=gRow(i)});
+init();
+</script></body></html>
