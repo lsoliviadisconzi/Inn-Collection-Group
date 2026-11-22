@@ -1,2 +1,3 @@
-# All dependencies in netlify/functions/api.py are built into the Python standard library.
-# This file is present for Netlify Python runtime detection.
+# The Inn Collection Group — Hospitality Technology Workspace
+# All application services and build pipelines run on standard library modules in Python 3.8+.
+# No external pip dependencies are required.

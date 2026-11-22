@@ -7,9 +7,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Netlify local files
-.netlify/
-
 # Local exports and scratchpad
 exports/
 _dev/
