@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Discovered Media — Review &amp; Download</title>
+<title>Media library — Inn Collection Group</title>
 <style>
   :root{
-    --bg:#0f1216; --panel:#161b22; --panel2:#1c2330; --line:#2a3341;
-    --text:#e6edf3; --muted:#8b98a9; --accent:#3fb950; --blue:#2f81f7;
-    --warn:#d29922; --danger:#f85149; --r:10px;
+    --bg:#171513; --panel:#1f1c19; --panel2:#262320; --line:#35312c;
+    --text:#ece7df; --muted:#8c867d; --accent:#e07b4a; --blue:#8ab4f8;
+    --warn:#e6b450; --danger:#f28b82; --r:10px;
+    --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -16,16 +18,21 @@
     margin:0;background:var(--bg);color:var(--text);
     font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   }
-  code{background:#0b0e12;padding:1px 5px;border-radius:4px;font-size:.9em}
+  code{background:#141210;padding:1px 5px;border-radius:4px;font-size:.9em}
   button{font:inherit;cursor:pointer}
 
   /* ---------- toolbar ---------- */
   header{
-    position:sticky;top:0;z-index:20;background:rgba(15,18,22,.92);
+    position:sticky;top:0;z-index:20;background:rgba(23,21,19,.92);
     backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
     padding:10px 16px;
   }
   .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .kicker{color:var(--accent);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;display:block}
+  .ttl{font:600 20px var(--serif);line-height:1.2}
+  .nav{display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;flex-wrap:wrap}
+  .nav a{padding:3px 12px;border-radius:999px;color:#b9b3a9;text-decoration:none;font-size:12px}
+  .nav a:hover{color:var(--text)}.nav a.on{background:rgba(224,123,74,.16);color:var(--text)}
   .bar + .bar{margin-top:8px}
   .grow{flex:1 1 260px;min-width:180px}
   input[type=search],select{
@@ -37,8 +44,8 @@
     background:var(--panel2);border:1px solid var(--line);color:var(--text);
     padding:7px 12px;border-radius:8px;white-space:nowrap;
   }
-  .btn:hover{border-color:#41505f;background:#232c3a}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#04210c;font-weight:600}
+  .btn:hover{border-color:#4a453e;background:#2d2925}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0e06;font-weight:600}
   .btn.primary:hover{filter:brightness(1.08)}
   .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
   .chip{
@@ -53,7 +60,7 @@
   details.menu{position:relative}
   details.menu > summary{
     list-style:none;background:var(--accent);border:1px solid var(--accent);
-    color:#04210c;font-weight:600;padding:7px 12px;border-radius:8px;
+    color:#1a0e06;font-weight:600;padding:7px 12px;border-radius:8px;
   }
   details.menu > summary::-webkit-details-marker{display:none}
   details.menu[open] > summary{filter:brightness(1.08)}
@@ -96,7 +103,7 @@
     background:var(--panel);border:1px solid var(--line);color:var(--muted);
     font-size:12px;padding:3px 9px;border-radius:6px;
   }
-  .summary-actions button:hover{color:var(--text);border-color:#41505f}
+  .summary-actions button:hover{color:var(--text);border-color:#4a453e}
 
   .grid{
     display:grid;gap:12px;padding:14px;
@@ -110,15 +117,15 @@
     transition:border-color .12s,transform .12s;
     display:flex;flex-direction:column;
   }
-  .card:hover{border-color:#41505f;transform:translateY(-1px)}
+  .card:hover{border-color:#4a453e;transform:translateY(-1px)}
   .card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   .card.sel::after{
     content:"✓";position:absolute;top:7px;left:7px;width:20px;height:20px;
-    background:var(--accent);color:#04210c;border-radius:50%;font-size:13px;
+    background:var(--accent);color:#1a0e06;border-radius:50%;font-size:13px;
     font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2;
   }
   .thumb{
-    aspect-ratio:4/3;background:#0b0e12;display:flex;align-items:center;
+    aspect-ratio:4/3;background:#141210;display:flex;align-items:center;
     justify-content:center;overflow:hidden;border-bottom:1px solid var(--line);
   }
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -159,9 +166,9 @@
     text-overflow: ellipsis;
   }
   .tag.venue {
-    background: rgba(47, 129, 247, 0.15);
+    background: rgba(138, 180, 248, 0.15);
     color: var(--blue);
-    border: 1px solid rgba(47, 129, 247, 0.3);
+    border: 1px solid rgba(138, 180, 248, 0.3);
   }
   .tag.region {
     background: rgba(163, 113, 247, 0.15);
@@ -182,8 +189,8 @@
     padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.7);
     border:1px solid var(--line);color:var(--muted);z-index:2;
   }
-  .badge.doc{color:var(--warn);border-color:#4a3a12}
-  .badge.pdf{color:var(--danger);border-color:#5a1e1a}
+  .badge.doc{color:var(--warn);border-color:#4a3d1a}
+  .badge.pdf{color:var(--danger);border-color:#5a2a26}
   .badge.arc{color:#a371f7;border-color:#3a1e5a}
   .badge.img{color:var(--blue);border-color:#1b3a63}
 
@@ -191,9 +198,9 @@
   #loader{
     position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:12px;padding:24px;
-    background:rgba(15,18,22,.97);text-align:center;
+    background:rgba(23,21,19,.97);text-align:center;
   }
-  #loader.drag{background:rgba(47,129,247,.14);outline:3px dashed var(--blue);outline-offset:-20px}
+  #loader.drag{background:rgba(138,180,248,.14);outline:3px dashed var(--blue);outline-offset:-20px}
   #loader h2{margin:0;font-size:18px}
   #loader p{margin:0;color:var(--muted);max-width:520px}
   .link{color:var(--blue);text-decoration:underline;cursor:pointer}
@@ -204,6 +211,10 @@
 <body>
 
 <header>
+  <div class="bar">
+    <div><span class="kicker">Inn Collection Group</span><div class="ttl">Media library</div></div>
+    <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="menu-review.html">Menu review</a><a href="menu-explorer.html">Menu explorer</a><a href="product-data.html">Product data</a><a href="launch-readiness.html">Launch readiness</a><a href="fnb-crosscheck.html">Role cross-check</a><a class="on" href="discovered-media.html" aria-current="page">Media library</a></nav>
+  </div>
   <div class="bar">
     <div class="grow"><input id="search" type="search" placeholder="Search filename, path or URL…  (press /)" /></div>
     
@@ -234,10 +245,6 @@
     <button class="btn" id="selInv">Invert visible</button>
     <span class="chip"><b id="cSel">0</b> selected</span>
     <span class="chip"><b id="cAssets">0</b> assets · <b id="cUrls">0</b> URLs</span>
-    <a class="btn" href="menu-review.html">Review menus</a>
-    <a class="btn" href="menu-explorer.html">Menu explorer</a>
-    <a class="btn" href="launch-readiness.html">Launch readiness</a>
-    <a class="btn" href="product-data.html">Product data</a>
     <div style="flex:1"></div>
     <details class="menu" id="exportMenu">
       <summary>⬇ Export selected</summary>

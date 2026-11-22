@@ -184,10 +184,11 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
         request = urlsplit(self.path)
         if request.path == "/":
             self.send_response(302)
-            self.send_header("Location", "/pages/menu-review.html")
+            self.send_header("Location", "/pages/index.html")
             self.end_headers()
             return
         if request.path in (
+            "/pages/index.html",
             "/pages/menu-review.html",
             "/pages/discovered-media.html",
             "/pages/fnb-crosscheck.html",
@@ -205,6 +206,9 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                 ROOT / "inncollectiongroup.com_root" / "discovered_media.csv",
                 "text/csv; charset=utf-8",
             )
+            return
+        if request.path == "/api/health":
+            self._get_health()
             return
         if request.path == "/api/rebuild-status":
             self._send_json(get_rebuild_status())
@@ -751,6 +755,72 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
         self._send_json({"ok": True, "name": name, "status": status, "note": note, "updatedAt": now, "updatedBy": user})
 
     def _get_allergen_gaps(self) -> None:
+        self._send_json(self._allergen_gap_data())
+
+    def _get_health(self) -> None:
+        """Estate summary for the home dashboard. Read-only; every section degrades on its own."""
+        gaps = self._allergen_gap_data()
+        venues = self._venue_index()
+        blockers: dict[str, set[str]] = {}
+        for v in gaps["venues"]:
+            for prod in v.get("missingProducts", []) or []:
+                blockers.setdefault(prod.get("name") or "(unnamed)", set()).add(v["venue"])
+        health: dict[str, object] = {
+            "generatedAt": datetime.now(tz=timezone.utc).isoformat(),
+            "venues": {"total": len(venues), "exported": sum(1 for v in venues if v["hasExport"])},
+            "allergens": gaps["summary"],
+            "recurringBlockers": [
+                {"name": n, "venues": len(vs)}
+                for n, vs in sorted(blockers.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:6]
+            ],
+            "notExported": [v["name"] for v in venues if not v["hasExport"]],
+            "menus": {"total": len(self._menu_index()), "reviewByStatus": {}},
+            "openIssues": None,
+            "campaign": None,
+            "activity": [],
+            "rebuild": get_rebuild_status(),
+            "lastBackup": None,
+        }
+        try:
+            with closing(self._review_connection()) as conn:
+                row = conn.execute("SELECT COUNT(*) FROM issue_reviews WHERE status = 'open'").fetchone()
+                health["openIssues"] = row[0] if row else 0
+                try:
+                    rows = conn.execute("SELECT status, COUNT(*) FROM menu_reviews GROUP BY status").fetchall()
+                    health["menus"]["reviewByStatus"] = {r[0]: r[1] for r in rows}
+                except sqlite3.Error:
+                    pass
+                try:
+                    c = conn.execute(
+                        "SELECT id, name, launch_date FROM launch_campaigns ORDER BY launch_date DESC LIMIT 1"
+                    ).fetchone()
+                    if c:
+                        health["campaign"] = {"id": c["id"], "name": c["name"], "launchDate": c["launch_date"]}
+                except sqlite3.Error:
+                    pass
+                try:
+                    rows = conn.execute(
+                        "SELECT entity, entity_id, action, detail, user, created_at "
+                        "FROM audit_events ORDER BY created_at DESC LIMIT 12"
+                    ).fetchall()
+                    health["activity"] = [
+                        {"entity": r["entity"], "entityId": r["entity_id"], "action": r["action"],
+                         "detail": r["detail"], "user": r["user"], "at": r["created_at"]}
+                        for r in rows
+                    ]
+                except sqlite3.Error:
+                    pass
+        except sqlite3.Error:
+            pass
+        try:
+            backups = sorted(DB_BACKUP_DIR.glob("*.sqlite3"), key=lambda f: f.stat().st_mtime)
+            if backups:
+                health["lastBackup"] = datetime.fromtimestamp(backups[-1].stat().st_mtime, tz=timezone.utc).isoformat()
+        except OSError:
+            pass
+        self._send_json(health)
+
+    def _allergen_gap_data(self) -> dict:
         import build_venue_export
         results = []
         total_products = 0
@@ -812,7 +882,7 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                     "error": str(e),
                 })
 
-        self._send_json({
+        return {
             "summary": {
                 "totalVenues": len(build_venue_export.VENUES),
                 "exportedVenues": sum(1 for r in results if r.get("hasExport")),
@@ -821,7 +891,7 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                 "totalUnmatchedDishes": total_unmatched_dishes,
             },
             "venues": results,
-        })
+        }
 
     def _save_issue_review(self, payload: object) -> None:
         if not isinstance(payload, dict):

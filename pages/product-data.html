@@ -47,9 +47,9 @@ tbody tr{cursor:pointer}tbody tr:hover{background:rgba(255,255,255,.03)}tr.sel t
 <body>
 <header class="mc-head">
   <div><span class="mc-kicker">Inn Collection Group</span>
-  <h1>Product data <span class="sample" id="sampleBadge">Sample data · front-end skin only</span></h1>
+  <h1>Product data <span class="sample" id="sampleBadge" hidden>Sample data · front-end skin only</span></h1>
   <div style="color:var(--gray-hi)">One record per product: allergens, nutrition, recipe, price and codes, each with its own accuracy check.</div></div>
-  <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a href="launch-readiness.html">Launch readiness</a><a class="on" href="product-data.html" aria-current="page">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="menu-review.html">Menu review</a><a href="menu-explorer.html">Menu explorer</a><a class="on" href="product-data.html" aria-current="page">Product data</a><a href="launch-readiness.html">Launch readiness</a><a href="fnb-crosscheck.html">Role cross-check</a><a href="discovered-media.html">Media library</a></nav>
 </header>
 <div class="bar1">
   <select id="venue" class="sel" aria-label="Venue" style="font-weight:600;min-width:180px"><option value="sample">Sample data (10 mock items)</option></select>
@@ -62,7 +62,7 @@ tbody tr{cursor:pointer}tbody tr:hover{background:rgba(255,255,255,.03)}tr.sel t
 <main class="content"><div class="inner">
   <div class="kpis" id="kpis"></div>
   <div class="split" id="main"></div>
-  <p class="note">All products, figures and checks are invented to show the layout. In the real build the allergen state, nutrition and prices would be fields on a product record, and every check below would run on save.</p>
+  <p class="note" id="sampleNote">All products, figures and checks are invented to show the layout. In the real build the allergen state, nutrition and prices would be fields on a product record, and every check below would run on save.</p>
 </div></main>
 <script>
 const AL=[["celery","Cel","Celery"],["gluten","Glu","Gluten"],["crustaceans","Cru","Crustaceans"],["eggs","Egg","Eggs"],["fish","Fis","Fish"],["lupin","Lup","Lupin"],["milk","Mil","Milk"],["molluscs","Mol","Molluscs"],["mustard","Mus","Mustard"],["nuts","Nut","Tree nuts"],["peanuts","Pea","Peanuts"],["sesame","Ses","Sesame"],["soya","Soy","Soya"],["sulphites","Sul","Sulphites"]];
@@ -248,6 +248,8 @@ async function loadVenue(venueId) {
   if (venueId === "sample") {
     P = [...SAMPLE_P];
     const b = $("#sampleBadge");
+    b.hidden = false;
+    { const nt = $("#sampleNote"); if (nt) nt.hidden = false; }
     b.textContent = "Sample data · front-end skin only";
     b.style.borderColor = "var(--warn)";
     b.style.color = "var(--warn)";
@@ -266,13 +268,14 @@ async function loadVenue(venueId) {
   rb.disabled = false;
 
   const b = $("#sampleBadge");
-  b.textContent = `Loading ${venueName}…`;
+  b.hidden = true;
   try {
     const res = await fetch(`/api/venues/${encodeURIComponent(venueId)}`);
     if (!res.ok) throw new Error("Venue fetch failed: " + res.status);
     const data = await res.json();
     if (!data.hasExport && !data.products) {
       P = [];
+      b.hidden = false;
       b.textContent = `${venueName} (no export generated yet)`;
       b.style.borderColor = "var(--warn)";
       b.style.color = "var(--warn)";
@@ -288,13 +291,13 @@ async function loadVenue(venueId) {
     }
 
     P = (data.products || []).map((prod, idx) => mapVenueProduct(prod, idx));
-    b.textContent = `Live export: ${venueName} (${P.length} products)`;
-    b.style.borderColor = "var(--ok)";
-    b.style.color = "var(--ok)";
+    b.hidden = true;
+    const nt = $("#sampleNote"); if (nt) nt.hidden = true;
     updateCategories();
     sel = 0;
     render();
   } catch (err) {
+    b.hidden = false;
     b.textContent = `Error loading ${venueName}`;
     b.style.borderColor = "var(--err)";
     b.style.color = "var(--err)";
@@ -349,7 +352,11 @@ async function initVenues() {
       options.push(`<option value="${esc(v.id)}" data-name="${esc(v.name)}" data-has="${v.hasExport?1:0}">${esc(v.name)}${tag}</option>`);
     });
     vSel.innerHTML = options.join("");
-    const preferred = venues.find(v => v.hasExport);
+    const qs = new URLSearchParams(location.search);
+    const wanted = qs.get("venue");
+    const wantedFilter = qs.get("filter");
+    if (wantedFilter && [...$("#fi").options].some(o => o.value === wantedFilter)) $("#fi").value = wantedFilter;
+    const preferred = venues.find(v => wanted && (v.id === wanted || v.slug === wanted) && v.hasExport) || venues.find(v => v.hasExport);
     if (preferred) {
       vSel.value = preferred.id;
       await loadVenue(preferred.id);

@@ -47,18 +47,24 @@ tr.rg td{background:var(--bg-sub);color:var(--accent);font:11px var(--mono);lett
 .it{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:9px 0;border-bottom:1px solid var(--border)}.it input{margin-top:3px;accent-color:var(--accent)}.it small{display:block;color:var(--gray)}
 .btn{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 10px;font-size:12px}.btn:hover{border-color:var(--gray)}
 .note{margin-top:14px;color:var(--gray);font-size:12px}
+.tabs{flex:none;display:flex;gap:2px;padding:0 clamp(16px,3vw,40px);border-bottom:1px solid var(--border);background:var(--bg-card)}
+.tab{border:0;border-bottom:2px solid transparent;background:none;padding:9px 14px 8px;color:var(--gray-hi);font-size:13px}.tab:hover{color:var(--white)}.tab.on{color:var(--white);border-bottom-color:var(--accent)}.tab i{font-style:normal;margin-left:6px;padding:0 7px;border-radius:999px;font:600 11px var(--sans);background:rgba(242,139,130,.14);color:var(--err)}
+a.lnk{color:var(--info);text-decoration:none}a.lnk:hover{text-decoration:underline}
+#pane-allergens td.l,#pane-allergens th.l{text-align:left}#pane-allergens table{min-width:560px}
 </style>
 </head>
 <body>
 <header class="mc-head">
   <div>
     <span class="mc-kicker">Inn Collection Group</span>
-    <h1>Launch readiness <span class="sample" id="launchBadge">Sample data · front-end skin only</span></h1>
+    <h1>Launch readiness <span class="sample" id="launchBadge" hidden>Sample data · server not reachable</span></h1>
     <div class="meta"><select class="sel" id="campaignSel" aria-label="Launch"><option value="spring-2027">Spring menu 2027 · launch 1 Mar 2027</option></select><span id="asOfText">Shown as of <b>8 Feb 2027</b></span></div>
   </div>
-  <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a class="on" href="launch-readiness.html" aria-current="page">Launch readiness</a><a href="product-data.html">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="menu-review.html">Menu review</a><a href="menu-explorer.html">Menu explorer</a><a href="product-data.html">Product data</a><a class="on" href="launch-readiness.html" aria-current="page">Launch readiness</a><a href="fnb-crosscheck.html">Role cross-check</a><a href="discovered-media.html">Media library</a></nav>
 </header>
+<div class="tabs" role="tablist" aria-label="Launch readiness sections"><button class="tab on" role="tab" id="tab-campaign" data-t="campaign" aria-selected="true">Campaign</button><button class="tab" role="tab" id="tab-allergens" data-t="allergens" aria-selected="false">Allergen compliance<i id="tabCount" hidden></i></button></div>
 <main class="content"><div class="inner">
+<div id="pane-campaign" role="tabpanel" aria-labelledby="tab-campaign">
   <div class="kpis" id="kpis"></div>
   <h2 class="s">Timeline <small>four milestones, today marked</small></h2>
   <div class="tl"><div class="line" id="line"></div><div class="tlpad"></div></div>
@@ -67,7 +73,18 @@ tr.rg td{background:var(--bg-sub);color:var(--accent);font:11px var(--mono);lett
   <h2 class="s">Site readiness <small id="sc"></small></h2>
   <div class="leg"><span><i class="dot done"></i>Done</span><span><i class="dot track"></i>In progress</span><span><i class="dot risk"></i>At risk</span><span><i class="dot block"></i>Blocked</span><span><i class="dot"></i>Not started</span><select class="sel" id="rg" aria-label="Region"></select></div>
   <div class="grid"><table id="tb"></table></div>
-  <p class="note">Everything here is invented to show the layout. In the real build each checklist item would link to its source record (menu, recipe, product, POS item) and statuses would come from those records, not be set by hand.</p>
+  <p class="note" id="sampleNote">Everything here is invented to show the layout. In the real build each checklist item would link to its source record (menu, recipe, product, POS item) and statuses would come from those records, not be set by hand.</p>
+</div>
+<div id="pane-allergens" role="tabpanel" aria-labelledby="tab-allergens" hidden>
+  <div class="kpis" id="akpis"></div>
+  <div class="gate" id="agate"><b>Release gate.</b> A menu with any unset allergen declaration cannot be marked Release Ready or exported for print, and every blocked attempt is written to the audit log.</div>
+  <h2 class="s">Recurring blockers <small>the same recipe unset in several venues; fix it once in Kafoodie and it clears everywhere</small></h2>
+  <div class="grid" style="max-height:340px"><table id="ablock"></table></div>
+  <h2 class="s">By venue <small id="acount"></small></h2>
+  <div class="leg"><select class="sel" id="argn" aria-label="Region"></select><label><input type="checkbox" id="aonly" checked style="accent-color:var(--accent)"> Only venues with gaps</label></div>
+  <div class="grid"><table id="atb"></table></div>
+  <p class="note">This is a read-only view of what Kafoodie declares. Allergen data is corrected in Kafoodie, not here, then the venue is rebuilt to pick it up.</p>
+</div>
 </div></main>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="dr" aria-label="Workstream detail"></aside>
@@ -184,7 +201,59 @@ function open(k){const w=W[k];W.cur=k;const st=wst(w);
   });
 }
 function close(){$("#dr").classList.remove("on");$("#scrim").classList.remove("on")}
-function refresh(){kpis();cards();grid()}
+const VENUE_ID={};
+function aChip(v){
+  if(!v.hasExport)return['todo','Not exported'];
+  if(v.status==='error')return['risk','Read error'];
+  if(v.missingAllergensCount>0)return['block','Blocked'];
+  if(v.unmatchedDishesCount>0)return['risk','At risk'];
+  return['done','Compliant'];
+}
+function allergenPane(){
+  const s=allergenSummary,vs=Object.values(allergenGapsMap);
+  const tc=$("#tabCount");
+  if(!s){
+    $("#akpis").innerHTML='<div class="kpi"><small>Allergen data</small><b>Unavailable</b><span>The server did not return the allergen audit</span></div>';
+    $("#ablock").innerHTML="";$("#atb").innerHTML="";$("#acount").textContent="";tc.hidden=true;return;
+  }
+  const exp=vs.filter(v=>v.hasExport),blocked=exp.filter(v=>v.missingAllergensCount>0);
+  const declared=s.totalProducts-s.totalMissingAllergenProducts;
+  const pc=s.totalProducts?Math.floor(declared/s.totalProducts*1000)/10:0;
+  $("#akpis").innerHTML=[
+    ["Declared",pc+"%",`${declared} of ${s.totalProducts} products across ${s.exportedVenues} exported venues`],
+    ["Unset declarations",s.totalMissingAllergenProducts?`<b style="color:var(--err)">${s.totalMissingAllergenProducts}</b>`:"0","each one blocks release for its venue"],
+    ["Venues blocked",`${blocked.length} / ${exp.length}`,s.totalVenues-s.exportedVenues?`${s.totalVenues-s.exportedVenues} not exported yet`:"all venues exported"],
+    ["Unmatched dishes",s.totalUnmatchedDishes,"printed dishes with no Kafoodie recipe"]
+  ].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+  tc.hidden=!blocked.length;tc.textContent=s.totalMissingAllergenProducts;
+  const rec=new Map();
+  exp.forEach(v=>(v.missingProducts||[]).forEach(p=>{const k=p.name||"(unnamed)";const r=rec.get(k)||{venues:new Set(),n:0};r.venues.add(v.venue);r.n++;rec.set(k,r)}));
+  const rows=[...rec.entries()].sort((a,b)=>b[1].venues.size-a[1].venues.size||b[1].n-a[1].n).slice(0,12);
+  $("#ablock").innerHTML=rows.length?`<tr><th class="l">Recipe</th><th>Venues</th><th>Instances</th></tr>`+rows.map(([n,r])=>`<tr><td class="l" title="${esc([...r.venues].join(", "))}">${esc(n)}</td><td>${r.venues.size}</td><td>${r.n}</td></tr>`).join(""):`<tr><td class="l" colspan="3">No unset allergen declarations in the exported venues.</td></tr>`;
+  const rg=$("#argn");
+  if(!rg.options.length||rg.dataset.n!=String(vs.length)){
+    rg.innerHTML='<option value="all">All regions</option>'+[...new Set(vs.map(v=>v.region))].sort().map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");rg.dataset.n=vs.length;
+  }
+  const only=$("#aonly").checked,reg=rg.value;
+  const list=vs.filter(v=>(reg==="all"||v.region===reg)&&(!only||!v.hasExport||v.missingAllergensCount>0||v.unmatchedDishesCount>0||v.status==='error'))
+    .sort((a,b)=>(b.missingAllergensCount||0)-(a.missingAllergensCount||0)||(b.unmatchedDishesCount||0)-(a.unmatchedDishesCount||0)||a.venue.localeCompare(b.venue));
+  $("#acount").textContent=`${list.length} of ${vs.length} venues`;
+  $("#atb").innerHTML=`<tr><th class="l">Venue</th><th class="l">Region</th><th>Products</th><th>Unset</th><th>Unmatched</th><th>Status</th></tr>`+(list.length?list.map(v=>{
+    const c=aChip(v),id=VENUE_ID[v.venue];
+    const name=v.hasExport&&id?`<a class="lnk" href="product-data.html?venue=${encodeURIComponent(id)}&filter=gap" title="Open this venue's products, filtered to allergen gaps">${esc(v.venue)}</a>`:esc(v.venue);
+    return`<tr><td class="l">${name}</td><td class="l">${esc(v.region)}</td><td>${v.productsCount||0}</td><td>${v.missingAllergensCount||0}</td><td>${v.unmatchedDishesCount||0}</td><td><span class="b ${c[0]}">${c[1]}</span></td></tr>`}).join(""):`<tr><td class="l" colspan="6">Nothing to show with these filters.</td></tr>`);
+}
+function setTab(t,push){
+  const a=t==="allergens";
+  $("#pane-campaign").hidden=a;$("#pane-allergens").hidden=!a;
+  document.querySelectorAll(".tab").forEach(b=>{const on=b.dataset.t===t;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
+  if(push)history.replaceState(null,"",a?"#allergens":location.pathname+location.search);
+  $(".content").scrollTop=0;
+}
+document.querySelector(".tabs").onclick=e=>{const b=e.target.closest(".tab");if(b)setTab(b.dataset.t,true)};
+$("#argn").onchange=allergenPane;$("#aonly").onchange=allergenPane;
+window.addEventListener("hashchange",()=>setTab(location.hash==="#allergens"?"allergens":"campaign",false));
+function refresh(){kpis();cards();grid();allergenPane()}
 $("#ws").onclick=e=>{const c=e.target.closest("[data-k]");if(c)open(+c.dataset.k)};
 $("#scrim").onclick=close;document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
 
@@ -255,13 +324,11 @@ async function loadCampaign(campId){
       venueReadinessMap=data.venueStatus;
     }
     const b=$("#launchBadge");
-    if(b){
-      b.textContent="Live campaign · SQLite synced";
-      b.style.borderColor="var(--ok)";
-      b.style.color="var(--ok)";
-    }
+    if(b)b.hidden=true;
+    const nt=$("#sampleNote");if(nt)nt.hidden=true;
   } catch(e){
     console.warn("Using baseline launch campaign data:", e);
+    const b=$("#launchBadge");if(b)b.hidden=false;
   }
   updateRegionFilter();
   tl();
@@ -288,6 +355,7 @@ async function initCampaign(){
       const vList=await vRes.json();
       if(vList.length){
         SITES=vList.map(v=>[v.name, v.region]);
+        vList.forEach(v=>{VENUE_ID[v.name]=v.id});
       }
     }
     if(cRes&&cRes.ok){
@@ -309,6 +377,7 @@ $("#campaignSel").addEventListener("change", e=>loadCampaign(e.target.value));
 updateRegionFilter();
 tl();
 refresh();
+if(location.hash==="#allergens")setTab("allergens",false);
 initCampaign();
 </script>
 </body>

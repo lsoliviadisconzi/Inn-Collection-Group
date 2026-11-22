@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home — Inn Collection Group</title>
+<style>
+:root{color-scheme:dark;--bg:#171513;--bg-card:#1f1c19;--bg-sub:#191714;--border:#35312c;--white:#ece7df;--gray:#8c867d;--gray-hi:#b9b3a9;--accent:#e07b4a;--ok:#85c99c;--err:#f28b82;--warn:#e6b450;--info:#8ab4f8;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none}
+html,body{height:100%}body{margin:0;background:var(--bg);color:var(--white);font:13px/1.5 var(--sans);display:flex;flex-direction:column;overflow:hidden}
+a{color:inherit}:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.mc-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px clamp(16px,3vw,40px);border-bottom:1px solid var(--border);background:var(--bg-card)}
+.mc-kicker{color:var(--accent);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.mc-head h1{margin:2px 0;font:600 22px var(--serif)}
+.meta{color:var(--gray-hi);font-size:12px}
+.nav{display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:999px;flex-wrap:wrap}.nav a{padding:3px 12px;border-radius:999px;color:var(--gray-hi);text-decoration:none;font-size:12px}.nav a:hover{color:var(--white)}.nav a.on{background:rgba(224,123,74,.16);color:var(--white)}
+.content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:18px clamp(16px,3vw,40px) 40px}.inner{width:min(1240px,100%);margin:0 auto}
+.state{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border:1px solid var(--border);border-left:4px solid var(--gray);border-radius:10px;background:var(--bg-card);padding:16px 18px;margin-bottom:14px}
+.state.block{border-left-color:var(--err)}.state.ok{border-left-color:var(--ok)}.state.warn{border-left-color:var(--warn)}
+.state h2{margin:0;font:600 19px/1.3 var(--serif);max-width:60ch}.state p{margin:4px 0 0;color:var(--gray-hi);max-width:70ch}
+.btn{display:inline-block;border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:5px 12px;font-size:12px;text-decoration:none;white-space:nowrap}.btn:hover{border-color:var(--gray)}.btn.pri{background:var(--accent);border-color:var(--accent);color:#1a0e06;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:18px}
+.kpi{border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:12px 14px}.kpi small{color:var(--gray);font-size:12px}.kpi b{display:block;font:600 24px/1.2 var(--serif)}.kpi span{color:var(--gray-hi);font-size:12px}
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}@media(max-width:900px){.cols{grid-template-columns:1fr}}
+h2.s{margin:18px 0 8px;font:600 17px var(--serif);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}h2.s small{font:12px var(--sans);color:var(--gray)}
+.panel{border:1px solid var(--border);border-radius:10px;background:var(--bg-card)}
+.row{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-bottom:1px solid var(--border)}.row:last-child{border-bottom:0}.row small{display:block;color:var(--gray)}.row .n{font:600 13px var(--mono);color:var(--err);white-space:nowrap}
+.empty{padding:14px;color:var(--gray)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.tile{display:block;text-decoration:none;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);padding:12px 14px}.tile:hover{border-color:var(--gray)}.tile b{display:block;font:600 15px var(--serif)}.tile span{color:var(--gray-hi);font-size:12px}
+.act{padding:8px 14px;border-bottom:1px solid var(--border)}.act:last-child{border-bottom:0}.act small{color:var(--gray)}.act code{font:12px var(--mono);color:var(--gray-hi)}
+.sys{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;padding:12px 14px}.sys dt{color:var(--gray)}.sys dd{margin:0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--gray)}.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.err{background:var(--err)}
+.note{margin-top:14px;color:var(--gray);font-size:12px}
+</style>
+</head>
+<body>
+<header class="mc-head">
+  <div>
+    <span class="mc-kicker">Inn Collection Group</span>
+    <h1>Estate overview</h1>
+    <div class="meta" id="who">Loading…</div>
+  </div>
+  <nav class="nav" aria-label="Pages"><a class="on" href="index.html" aria-current="page">Home</a><a href="menu-review.html">Menu review</a><a href="menu-explorer.html">Menu explorer</a><a href="product-data.html">Product data</a><a href="launch-readiness.html">Launch readiness</a><a href="fnb-crosscheck.html">Role cross-check</a><a href="discovered-media.html">Media library</a></nav>
+</header>
+<main class="content"><div class="inner">
+  <div id="state"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="cols">
+    <div>
+      <h2 class="s">Needs attention <small>from the latest export of each venue</small></h2>
+      <div class="panel" id="attn"></div>
+      <h2 class="s">Go to</h2>
+      <div class="tiles" id="tiles"></div>
+    </div>
+    <div>
+      <h2 class="s">Recent activity <small>last 12 recorded changes</small></h2>
+      <div class="panel" id="act"></div>
+      <h2 class="s">System</h2>
+      <dl class="panel sys" id="sys"></dl>
+    </div>
+  </div>
+  <p class="note">Allergen figures mirror what Kafoodie declares and are not editable here. Which tiles each person sees will follow their role once roles are switched on.</p>
+</div></main>
+<script>
+const $=(s,r=document)=>r.querySelector(s),esc=v=>String(v==null?"":v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const TILES=[
+  ["menu-review.html","Menu review","Check each menu against its PDF and fix extraction problems","*"],
+  ["menu-explorer.html","Menu explorer","Browse dishes, allergens and differences between venues","*"],
+  ["product-data.html","Product data","Products per venue, with allergen and mapping checks","*"],
+  ["launch-readiness.html","Launch readiness","Campaign progress and site-by-site readiness","*"],
+  ["launch-readiness.html#allergens","Allergen compliance","Unset declarations by venue and by recipe","*"],
+  ["fnb-crosscheck.html","Role cross-check","How these tools cover the F&B coordinator role","*"],
+  ["discovered-media.html","Media library","Find and export venue photos and documents","*"]
+];
+function ago(iso){
+  if(!iso)return"never";const t=new Date(iso).getTime();if(isNaN(t))return"unknown";
+  const m=Math.round((Date.now()-t)/6e4);if(m<1)return"just now";if(m<60)return m+" min ago";
+  const h=Math.round(m/60);if(h<48)return h+" h ago";return Math.round(h/24)+" days ago";
+}
+function when(iso){const d=new Date(iso);return isNaN(d)?"":d.toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function tiles(role){
+  $("#tiles").innerHTML=TILES.filter(t=>t[3]==="*"||(role&&t[3].split(",").includes(role)))
+    .map(t=>`<a class="tile" href="${t[0]}"><b>${esc(t[1])}</b><span>${esc(t[2])}</span></a>`).join("");
+}
+function render(h,me){
+  const a=h.allergens,ex=h.venues,unset=a.totalMissingAllergenProducts,blockers=h.recurringBlockers||[];
+  const blockedVenues=(a.venues||[]);
+  let cls="ok",head="",body="";
+  if(ex.exported<ex.total&&!unset){cls="warn";head=`${ex.total-ex.exported} of ${ex.total} venues have not been exported yet.`;body="Allergen figures only cover exported venues."}
+  else if(unset){cls="block";head=`${unset} allergen declaration${unset===1?" is":"s are"} unset. Menus with unset allergens cannot be released.`;body=blockers.length?`${blockers.length} recipe${blockers.length===1?"":"s"} account for the recurring cases. Clearing them in Kafoodie is the quickest fix.`:"Open the allergen view to see which venues and recipes are affected."}
+  else{head="Every exported venue has complete allergen declarations.";body=`${a.totalProducts} products checked across ${ex.exported} venues.`}
+  $("#state").innerHTML=`<div class="state ${cls}"><div><h2>${esc(head)}</h2><p>${esc(body)}</p></div><a class="btn pri" href="launch-readiness.html#allergens">See allergen compliance</a></div>`;
+  const rs=h.menus.reviewByStatus||{},reviewed=Object.values(rs).reduce((x,y)=>x+y,0);
+  const rb=h.rebuild||{};
+  $("#kpis").innerHTML=[
+    ["Venues exported",`${ex.exported} / ${ex.total}`,ex.exported===ex.total?"all venues built":`${ex.total-ex.exported} still to build`],
+    ["Unset allergens",unset?`<b style="color:var(--err)">${unset}</b>`:"0",`across ${a.totalProducts} products`],
+    ["Unmatched dishes",a.totalUnmatchedDishes,"printed with no Kafoodie recipe"],
+    ["Open review issues",h.openIssues==null?"–":h.openIssues,"flagged in menu review"],
+    ["Menus with a review",`${reviewed} / ${h.menus.total}`,"status recorded by a reviewer"]
+  ].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+  const rows=[];
+  blockers.forEach(b=>rows.push(`<div class="row"><div>${esc(b.name)}<small>Allergens unset in Kafoodie</small></div><span class="n">${b.venues} venue${b.venues===1?"":"s"}</span></div>`));
+  if(h.notExported.length)rows.push(`<div class="row"><div>Not exported yet<small>${esc(h.notExported.slice(0,4).join(", "))}${h.notExported.length>4?` and ${h.notExported.length-4} more`:""}</small></div><span class="n" style="color:var(--warn)">${h.notExported.length}</span></div>`);
+  if(h.openIssues)rows.push(`<div class="row"><div><a href="menu-review.html">Open menu review issues</a><small>Extraction problems not yet fixed or accepted</small></div><span class="n" style="color:var(--warn)">${h.openIssues}</span></div>`);
+  $("#attn").innerHTML=rows.length?rows.join(""):'<div class="empty">Nothing needs attention right now.</div>';
+  const act=h.activity||[];
+  $("#act").innerHTML=act.length?act.map(e=>`<div class="act"><code>${esc(e.action)}</code> ${esc(e.entity)} ${esc(e.entityId)}<br><small>${esc(e.user||"system")} · ${esc(when(e.at))}${e.detail?" · "+esc(String(e.detail).slice(0,90)):""}</small></div>`).join(""):'<div class="empty">No recorded activity yet.</div>';
+  const rbCls=rb.status==="error"?"err":rb.status==="running"?"warn":"ok";
+  const bk=h.lastBackup?(Date.now()-new Date(h.lastBackup))>36*36e5?"warn":"ok":"err";
+  $("#sys").innerHTML=`<dt>Last rebuild</dt><dd><i class="dot ${rbCls}"></i>${rb.status?esc(rb.status):"not run"}${rb.venue?" · "+esc(rb.venue):""}${rb.finished_at?" · "+esc(ago(rb.finished_at)):""}</dd>
+  <dt>Database backup</dt><dd><i class="dot ${bk}"></i>${esc(ago(h.lastBackup))}</dd>
+  ${h.campaign?`<dt>Next launch</dt><dd><a href="launch-readiness.html">${esc(h.campaign.name)}</a></dd>`:""}
+  <dt>Figures as of</dt><dd>${esc(when(h.generatedAt))}</dd>`;
+  const u=me&&me.authenticated?me.user:null;
+  $("#who").textContent=u?`Signed in as ${u.displayName||u.username} · ${u.role}`:"Not signed in";
+  tiles(u&&u.role);
+}
+Promise.all([fetch("/api/health").then(r=>r.ok?r.json():Promise.reject(r.status)),fetch("/api/me").then(r=>r.json()).catch(()=>null)])
+  .then(([h,me])=>render(h,me))
+  .catch(e=>{
+    $("#who").textContent="Server not reachable";
+    $("#state").innerHTML='<div class="state warn"><div><h2>The estate figures could not be loaded.</h2><p>Start the server and reload. The links below still work.</p></div></div>';
+    tiles(null);
+  });
+</script>
+</body>
+</html>
