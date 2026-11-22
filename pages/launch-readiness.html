@@ -53,8 +53,8 @@ tr.rg td{background:var(--bg-sub);color:var(--accent);font:11px var(--mono);lett
 <header class="mc-head">
   <div>
     <span class="mc-kicker">Inn Collection Group</span>
-    <h1>Launch readiness <span class="sample">Sample data · front-end skin only</span></h1>
-    <div class="meta"><select class="sel" aria-label="Launch"><option>Spring menu 2027 · launch 1 Mar 2027</option></select><span>Shown as of <b>8 Feb 2027</b></span></div>
+    <h1>Launch readiness <span class="sample" id="launchBadge">Sample data · front-end skin only</span></h1>
+    <div class="meta"><select class="sel" id="campaignSel" aria-label="Launch"><option value="spring-2027">Spring menu 2027 · launch 1 Mar 2027</option></select><span id="asOfText">Shown as of <b>8 Feb 2027</b></span></div>
   </div>
   <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a class="on" href="launch-readiness.html" aria-current="page">Launch readiness</a><a href="product-data.html">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
 </header>
@@ -72,10 +72,12 @@ tr.rg td{background:var(--bg-sub);color:var(--accent);font:11px var(--mono);lett
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="dr" aria-label="Workstream detail"></aside>
 <script>
-const AS=new Date("2027-02-08"),LAUNCH=new Date("2027-03-01"),D=s=>new Date(s);
+let currentCampaignId = "spring-2027";
+let AS=new Date("2027-02-08"),LAUNCH=new Date("2027-03-01"),D=s=>new Date(s);
 const ST={done:"Done",track:"On track",risk:"At risk",block:"Blocked",todo:"Not started"};
+let venueReadinessMap={};
 /* name, short, owner, due, gate, [items: text, status, owner, note] */
-const W=[
+let W=[
 ["Menus","MEN","F&B team","2027-01-29","Every dish has a description, section and allergens, and F&B has approved the menu.",[["Dish list locked","done","F&B"],["Descriptions approved","done","F&B"],["Drinks list locked","track","F&B"],["Allergen matrix signed off","risk","F&B","Two dishes have no allergen entry"],["Menu artwork proofed","todo","Marketing"]]],
 ["Recipes","REC","F&B team","2027-02-05","Every dish has a recipe card with yield, portion weight and costed ingredients.",[["Recipe cards written","track","F&B"],["Yields and portion weights confirmed","track","F&B"],["Ingredient costs from Procurement","risk","Procurement","Four items still unpriced"],["Nutrition calculated","todo","F&B"],["Prep standards photographed","todo","Operations"]]],
 ["Pricing","PRI","Finance","2027-02-10","Sell price, VAT and GP are set for each product, and Finance has signed off.",[["Target GP agreed","done","Finance"],["VAT rates checked","done","Finance"],["Sell prices set","track","Commercial"],["Site price variants","todo","Commercial"],["Finance sign-off","todo","Finance"]]],
@@ -84,17 +86,21 @@ const W=[
 ["Product information","INF","Coordinator","2027-02-17","Each product has allergen and nutrition sheets and a spec-book page.",[["Guest descriptions written","done","Marketing"],["Allergen and nutrition sheets","risk","F&B","Waiting on nutrition figures"],["Spec books drafted","track","Coordinator"],["Product knowledge cards","todo","F&B"]]],
 ["Training materials","TRN","Operations","2027-02-24","Site teams have briefing, tasting notes and a short check before launch.",[["Tasting notes","todo","F&B"],["Prep steps and video","todo","Operations"],["Server briefing","todo","Operations"],["Team quiz","todo","Operations"]]],
 ["Launch communications","COM","Coordinator","2027-02-22","Every site has the launch brief, spec book, timings and field-team contact.",[["Launch brief to sites","done","Coordinator"],["Field team call scheduled","done","Operations"],["Timings and checklist","track","Coordinator"],["Marketing assets aligned","track","Marketing"],["Spec books sent to sites","todo","Coordinator"]]]
-].map(w=>({n:w[0],s:w[1],o:w[2],due:D(w[3]),gate:w[4],items:w[5].map(i=>({t:i[0],st:i[1],o:i[2],note:i[3]||""}))}));
-const MS=[["Products locked","2027-01-22"],["EPOS configured","2027-02-15"],["Spec books to sites","2027-02-22"],["Launch","2027-03-01"]];
-const SITES=[["The Kingslodge Inn","County Durham"],["The Seaton Lane Inn","County Durham"],["The Midland","Lancashire"],["Offshore","Lancashire"],["The Seaburn Inn","Tyne and Wear"],["The Tynemouth Castle Inn","Tyne and Wear"],["The Ambleside Inn","Lake District"],["The Angel Inn","Lake District"],["The Coniston Inn","Lake District"],["The Pheasant Inn","Lake District"],["The Swan, Grasmere","Lake District"],["The Temperance Inn","Lake District"],["The Ullswater Inn","Lake District"],["The Wateredge Inn","Lake District"],["The Waterhead Inn","Lake District"],["The Wordsworth","Lake District"],["The Bull's Head Inn","North Wales"],["The Swallow Falls Inn","North Wales"],["The Amble Inn","Northumberland"],["The Bamburgh Castle Inn","Northumberland"],["The Commissioners Quay Inn","Northumberland"],["The Hogs Head Inn","Northumberland"],["The Lindisfarne Inn","Northumberland"],["Dean Court","Yorkshire"],["The Black Swan","Yorkshire"],["The Harrogate Inn","Yorkshire"],["The Knaresborough Inn","Yorkshire"],["The Northallerton Inn","Yorkshire"],["The Ripon Inn","Yorkshire"],["The King's Head Inn","Yorkshire"],["The Stables, Whitby","Yorkshire"]];
+].map(w=>({id:w[1],n:w[0],s:w[1],o:w[2],due:D(w[3]),gate:w[4],items:w[5].map((i,idx)=>({id:String(idx),t:i[0],st:i[1],o:i[2],note:i[3]||""}))}));
+let MS=[["Products locked","2027-01-22"],["EPOS configured","2027-02-15"],["Spec books to sites","2027-02-22"],["Launch","2027-03-01"]];
+let SITES=[["The Kingslodge Inn","County Durham"],["The Seaton Lane Inn","County Durham"],["The Midland","Lancashire"],["Offshore","Lancashire"],["The Seaburn Inn","Tyne and Wear"],["The Tynemouth Castle Inn","Tyne and Wear"],["The Ambleside Inn","Lake District"],["The Angel Inn","Lake District"],["The Coniston Inn","Lake District"],["The Pheasant Inn","Lake District"],["The Swan, Grasmere","Lake District"],["The Temperance Inn","Lake District"],["The Ullswater Inn","Lake District"],["The Wateredge Inn","Lake District"],["The Waterhead Inn","Lake District"],["The Wordsworth","Lake District"],["The Bull's Head Inn","North Wales"],["The Swallow Falls Inn","North Wales"],["The Amble Inn","Northumberland"],["The Bamburgh Castle Inn","Northumberland"],["The Commissioners Quay Inn","Northumberland"],["The Hogs Head Inn","Northumberland"],["The Lindisfarne Inn","Northumberland"],["Dean Court","Yorkshire"],["The Black Swan","Yorkshire"],["The Harrogate Inn","Yorkshire"],["The Knaresborough Inn","Yorkshire"],["The Northallerton Inn","Yorkshire"],["The Ripon Inn","Yorkshire"],["The King's Head Inn","Yorkshire"],["The Stables, Whitby","Yorkshire"]];
 const $=(s,r=document)=>r.querySelector(s),esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
 const fd=d=>d.toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 const pct=w=>w.items.filter(i=>i.st==="done").length/w.items.length;
 function wst(w){const s=w.items.map(i=>i.st);if(s.includes("block"))return"block";if(s.includes("risk"))return"risk";if(s.every(x=>x==="done"))return"done";if(s.every(x=>x==="todo"))return"todo";return"track"}
 const late=w=>w.due<AS&&wst(w)!=="done";
 const rnd=(i,j)=>{const x=Math.sin(i*12.9898+j*78.233)*43758.5453;return x-Math.floor(x)};
-function cell(i,j){const w=W[j],p=pct(w),r=rnd(i,j),st=wst(w);
-  if(st==="block"&&r>.86)return"block";if(r<p*.9)return"done";if(r<p*.9+.25)return"track";if(st==="risk"&&r>.9)return"risk";return"todo"}
+function cell(i,j){
+  const sName=SITES[i][0],wsId=W[j].id||W[j].s;
+  if(venueReadinessMap[sName]&&venueReadinessMap[sName][wsId])return venueReadinessMap[sName][wsId];
+  const w=W[j],p=pct(w),r=rnd(i,j),st=wst(w);
+  if(st==="block"&&r>.86)return"block";if(r<p*.9)return"done";if(r<p*.9+.25)return"track";if(st==="risk"&&r>.9)return"risk";return"todo";
+}
 function kpis(){
   const all=W.flatMap(w=>w.items),done=all.filter(i=>i.st==="done").length,bl=all.filter(i=>i.st==="block"||i.st==="risk").length;
   const ready=SITES.filter((_,i)=>W.every((_,j)=>cell(i,j)==="done")).length,days=Math.round((LAUNCH-AS)/864e5),ov=W.filter(late).length;
@@ -114,22 +120,150 @@ function cards(){
 function grid(){
   const rg=$("#rg").value;let h=`<tr><th>Site</th>${W.map(w=>`<th title="${esc(w.n)}">${w.s}</th>`).join("")}</tr>`,last="",n=0;
   SITES.forEach((s,i)=>{if(rg!=="all"&&s[1]!==rg)return;n++;if(s[1]!==last){last=s[1];h+=`<tr class="rg"><td colspan="${W.length+1}">${esc(s[1])}</td></tr>`}
-    h+=`<tr><td>${esc(s[0])}</td>${W.map((w,j)=>{const c=cell(i,j);return`<td><i class="dot ${c}" title="${esc(w.n)}: ${c==="todo"?"Not started":ST[c]||c}"></i></td>`}).join("")}</tr>`});
+    h+=`<tr><td>${esc(s[0])}</td>${W.map((w,j)=>{const c=cell(i,j);return`<td data-venue="${esc(s[0])}" data-region="${esc(s[1])}" data-ws="${esc(w.id||w.s)}" style="cursor:pointer" title="Click to cycle status"><i class="dot ${c}" title="${esc(w.n)}: ${c==="todo"?"Not started":ST[c]||c}"></i></td>`}).join("")}</tr>`});
   $("#tb").innerHTML=h;$("#sc").textContent=`${n} of ${SITES.length} sites`;
 }
 function open(k){const w=W[k];W.cur=k;const st=wst(w);
   $("#dr").innerHTML=`<div class="dh"><div><h2>${esc(w.n)}</h2><span class="b ${st}">${late(w)&&st!=="block"?"Overdue":ST[st]}</span> <span class="meta" style="display:inline">${esc(w.o)} · due ${fd(w.due)}</span></div><button class="btn" id="x">Close</button></div>
   <div class="db"><div class="gate"><b>Complete when:</b> ${esc(w.gate)}</div>${w.items.map((i,x)=>`<label class="it"><input type="checkbox" data-x="${x}" ${i.st==="done"?"checked":""}><span>${esc(i.t)}${i.note?`<small>${esc(i.note)}</small>`:""}</span><span class="b ${i.st}">${ST[i.st]}</span></label>`).join("")}
-  <p class="note">Ticking an item here updates the cards, timeline numbers and totals, as a preview of how it would respond.</p></div>`;
+  <p class="note">Ticking an item updates the card totals and syncs to SQLite.</p></div>`;
   $("#dr").classList.add("on");$("#scrim").classList.add("on");$("#x").onclick=close;$("#x").focus();
-  document.querySelectorAll("#dr [data-x]").forEach(c=>c.onchange=()=>{const it=w.items[+c.dataset.x];it.st=c.checked?"done":"track";it.note=c.checked?"":it.note;refresh();open(k)});
+  document.querySelectorAll("#dr [data-x]").forEach(c=>c.onchange=async()=>{
+    const it=w.items[+c.dataset.x];
+    it.st=c.checked?"done":"track";
+    it.note=c.checked?"":it.note;
+    refresh();open(k);
+    try {
+      await fetch(`/api/launches/${encodeURIComponent(currentCampaignId)}/tasks`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          workstreamId: w.id || w.s,
+          taskId: String(it.id !== undefined ? it.id : c.dataset.x),
+          status: it.st,
+          note: it.note
+        })
+      });
+    } catch(err) {
+      console.warn("Could not save task status:", err);
+    }
+  });
 }
 function close(){$("#dr").classList.remove("on");$("#scrim").classList.remove("on")}
 function refresh(){kpis();cards();grid()}
 $("#ws").onclick=e=>{const c=e.target.closest("[data-k]");if(c)open(+c.dataset.k)};
 $("#scrim").onclick=close;document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
-$("#rg").innerHTML='<option value="all">All regions</option>'+[...new Set(SITES.map(s=>s[1]))].map(r=>`<option>${esc(r)}</option>`).join("");$("#rg").onchange=grid;
-tl();refresh();
+
+$("#tb").onclick=async(e)=>{
+  const td=e.target.closest("td[data-venue]");
+  if(!td)return;
+  const vName=td.dataset.venue,reg=td.dataset.region,ws=td.dataset.ws;
+  const current=(venueReadinessMap[vName]&&venueReadinessMap[vName][ws])||"todo";
+  const cycle={"todo":"track","track":"done","done":"risk","risk":"block","block":"todo"};
+  const next=cycle[current]||"todo";
+  if(!venueReadinessMap[vName])venueReadinessMap[vName]={};
+  venueReadinessMap[vName][ws]=next;
+  grid();
+  try {
+    await fetch(`/api/launches/${encodeURIComponent(currentCampaignId)}/venues`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        venueName: vName,
+        region: reg,
+        workstreamId: ws,
+        status: next
+      })
+    });
+  } catch(err) {
+    console.warn("Could not save venue status:", err);
+  }
+};
+
+function updateRegionFilter(){
+  $("#rg").innerHTML='<option value="all">All regions</option>'+[...new Set(SITES.map(s=>s[1]))].sort().map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");
+  $("#rg").onchange=grid;
+}
+
+async function loadCampaign(campId){
+  currentCampaignId=campId;
+  try {
+    const res=await fetch(`/api/launches/${encodeURIComponent(campId)}`);
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    if(data.campaign){
+      LAUNCH=new Date(data.campaign.launchDate);
+      AS=new Date(data.campaign.asOfDate);
+      const asEl=$("#asOfText");
+      if(asEl)asEl.innerHTML=`Shown as of <b>${fd(AS)}</b>`;
+    }
+    if(data.milestones&&data.milestones.length){
+      MS=data.milestones;
+    }
+    if(data.workstreams&&data.workstreams.length){
+      W=data.workstreams.map(w=>({
+        id: w.id,
+        n: w.n,
+        s: w.s,
+        o: w.o,
+        due: new Date(w.due),
+        gate: w.gate,
+        items: w.items.map(i=>({
+          id: i.id,
+          t: i.t,
+          st: i.st,
+          o: i.o,
+          note: i.note||""
+        }))
+      }));
+    }
+    if(data.venueStatus){
+      venueReadinessMap=data.venueStatus;
+    }
+    const b=$("#launchBadge");
+    if(b){
+      b.textContent="Live campaign · SQLite synced";
+      b.style.borderColor="var(--ok)";
+      b.style.color="var(--ok)";
+    }
+  } catch(e){
+    console.warn("Using baseline launch campaign data:", e);
+  }
+  updateRegionFilter();
+  tl();
+  refresh();
+}
+
+async function initCampaign(){
+  try {
+    const vRes=await fetch("/api/venues").catch(()=>null);
+    if(vRes&&vRes.ok){
+      const vList=await vRes.json();
+      if(vList.length){
+        SITES=vList.map(v=>[v.name, v.region]);
+      }
+    }
+    const cRes=await fetch("/api/launches").catch(()=>null);
+    if(cRes&&cRes.ok){
+      const campaigns=await cRes.json();
+      const sel=$("#campaignSel");
+      if(campaigns.length&&sel){
+        sel.innerHTML=campaigns.map(c=>`<option value="${esc(c.id)}">${esc(c.name)} · launch ${fd(new Date(c.launchDate))}</option>`).join("");
+        sel.value=currentCampaignId;
+      }
+    }
+    await loadCampaign(currentCampaignId);
+  } catch(e){
+    console.warn("Could not initialise launch campaign:", e);
+  }
+}
+
+$("#campaignSel").addEventListener("change", e=>loadCampaign(e.target.value));
+
+updateRegionFilter();
+tl();
+refresh();
+initCampaign();
 </script>
 </body>
 </html>

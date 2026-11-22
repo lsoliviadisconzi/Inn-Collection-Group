@@ -11,3 +11,7 @@ Thumbs.db
 exports/
 _dev/
 *.part
+
+# Generated artifacts (always rebuildable — do not commit)
+pages/menu-explorer-data.js
+pages/menus.json

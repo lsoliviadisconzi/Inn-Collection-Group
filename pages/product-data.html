@@ -47,11 +47,13 @@ tbody tr{cursor:pointer}tbody tr:hover{background:rgba(255,255,255,.03)}tr.sel t
 <body>
 <header class="mc-head">
   <div><span class="mc-kicker">Inn Collection Group</span>
-  <h1>Product data <span class="sample">Sample data · front-end skin only</span></h1>
+  <h1>Product data <span class="sample" id="sampleBadge">Sample data · front-end skin only</span></h1>
   <div style="color:var(--gray-hi)">One record per product: allergens, nutrition, recipe, price and codes, each with its own accuracy check.</div></div>
   <nav class="nav" aria-label="Pages"><a href="menu-review.html">Menu review</a><a href="discovered-media.html">Discovered media</a><a href="fnb-crosscheck.html">F&amp;B role cross-check</a><a href="launch-readiness.html">Launch readiness</a><a class="on" href="product-data.html" aria-current="page">Product data</a><a href="menu-explorer.html">Menu explorer</a></nav>
 </header>
 <div class="bar1">
+  <select id="venue" class="sel" aria-label="Venue" style="font-weight:600;min-width:180px"><option value="sample">Sample data (10 mock items)</option></select>
+  <button id="rebuildBtn" class="btn" style="display:none" title="Rebuild export for selected venue">Rebuild</button>
   <input id="q" class="search" type="search" placeholder="Search name or code…" autocomplete="off">
   <select id="cat" class="sel" aria-label="Category"></select>
   <select id="fi" class="sel" aria-label="Issues"><option value="all">Any record state</option><option value="block">Has blocking issues</option><option value="warn">Warnings only</option><option value="clean">Clean</option></select>
@@ -67,7 +69,7 @@ const AL=[["celery","Cel","Celery"],["gluten","Glu","Gluten"],["crustaceans","Cr
 const AN=Object.fromEntries(AL.map(a=>[a[0],a[2]])),GPF=.65;
 const NS={src:"Calculated from recipe"},nu=(k,f,s,c,g,p,t,src="Calculated from recipe")=>({kcal:k,fat:f,sat:s,carbs:c,sug:g,pro:p,salt:t,src});
 /* c code, n name, cat, v dietary, a allergens (1 contains, 2 may contain), sg signed, price, menu (price printed on menu), tiers, nut, ing [name,g,cost,allergens] */
-const P=[
+const SAMPLE_P=[
 {c:"SP-0142",n:"Sourdough & cultured butter",cat:"Small plates",v:["V"],a:{gluten:1,milk:1},sg:1,price:5,menu:5,nut:nu(320,12,7,41,2,9,1.1),ing:[["Sourdough",80,.22,["gluten"]],["Cultured butter",20,.14,["milk"]],["Sea salt",1,.01,[]]]},
 {c:"MN-0201",n:"Beer-battered haddock & chips",cat:"Mains",v:[],a:{fish:1,gluten:1},sg:1,price:16.5,menu:16.5,nut:null,ing:[["Haddock fillet",180,3.1,["fish"]],["Ale batter",90,.45,["gluten"]],["Chips",250,.6,[]],["Tartare sauce",40,.28,["eggs","mustard"]],["Mushy peas",80,null,[]]]},
 {c:"MN-0207",n:"Steak & ale pie",cat:"Mains",v:[],a:{gluten:1,milk:1},sg:1,price:15.95,menu:15.95,tiers:[["Base",15.95,1],["Lake District",16.5,0]],nut:nu(780,41,17,62,6,34,2.4,"Supplier sheet"),ing:[["Beef shin",160,3.2,[]],["Ale",60,.3,["gluten"]],["Puff pastry",110,.55,["gluten","milk"]],["Celery & onion",50,.1,["celery"]],["Gravy",80,.25,["gluten"]]]},
@@ -79,6 +81,7 @@ const P=[
 {c:"SD-0105",n:"Sweet potato fries",cat:"Sides",v:["Ve"],a:{},sg:1,price:4.95,menu:4.95,nut:nu(310,14,2,42,11,3,.8),ing:[["Sweet potato",200,.4,[]],["Rapeseed oil",15,.05,[]]]},
 {c:"KD-0501",n:"Kids sausage & mash",cat:"Kids",v:[],a:{gluten:1,milk:1},sg:1,price:7.5,menu:7.95,nut:nu(520,28,10,41,3,19,2.2),ing:[["Pork sausages",120,.95,["gluten"]],["Mash",150,.3,["milk"]],["Peas & gravy",80,.2,["gluten"]]]}
 ];
+let P=[...SAMPLE_P];
 const VAT=.2,$=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]),gbp=n=>"£"+n.toFixed(2);
 let sel=0,tab="a",view="p";
@@ -152,9 +155,197 @@ document.addEventListener("click",e=>{
   if(e.target.id==="sign"){P[sel].sg=P[sel].sg?0:1;render()}
 });
 document.addEventListener("input",e=>{if(e.target.id==="px"){const v=parseFloat(e.target.value);if(v>=0){P[sel].price=v;const f=e.target.selectionStart;kpis();const pos=f;$("#main").children[0].outerHTML=list();const dpanel=$("#main").children[1];const keep=e.target.value;dpanel.outerHTML=detail();const n=$("#px");n.value=keep;n.focus();n.setSelectionRange(pos,pos)}}});
-$("#cat").innerHTML='<option value="all">All categories</option>'+[...new Set(P.map(p=>p.cat))].map(c=>`<option>${c}</option>`).join("");
+function updateCategories(){
+  const cats=[...new Set(P.map(p=>p.cat))].filter(Boolean).sort();
+  $("#cat").innerHTML='<option value="all">All categories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+}
+
+function mapVenueProduct(p, idx) {
+  const code = p.id ? ("KF-" + p.id) : ("PR-" + String(idx + 1).padStart(4, "0"));
+  const name = p.name || "Untitled Product";
+  const cat = p.menuGroup || p.menu || "General";
+  
+  const tags = p.dietaryTags || [];
+  const v = [];
+  if (tags.some(t => /vegan/i.test(t))) v.push("Ve");
+  else if (tags.some(t => /vegetarian/i.test(t))) v.push("V");
+
+  const a = {};
+  const normalizeAl = (raw) => {
+    const s = String(raw).toLowerCase();
+    for (const item of AL) {
+      if (s.includes(item[0])) return item[0];
+    }
+    if (s.includes("sulphur") || s.includes("sulphite")) return "sulphites";
+    return null;
+  };
+
+  (p.allergens || []).forEach(item => {
+    const key = normalizeAl(item.name || item.label || item.id);
+    if (key) a[key] = 1;
+  });
+  (p.mayContain || []).forEach(item => {
+    const key = normalizeAl(item.name || item.label || item.id);
+    if (key && !a[key]) a[key] = 2;
+  });
+
+  const sg = p.allergenDataMissing ? 0 : 1;
+
+  let price = 0;
+  if (p.dishes && p.dishes.length && p.dishes[0].price != null) {
+    price = Number(p.dishes[0].price) || 0;
+  } else if (p.prices && p.prices.length && p.prices[0].price != null) {
+    price = Number(p.prices[0].price) || 0;
+  }
+  const menuPrice = price;
+
+  let nut = null;
+  const n = p.nutrition?.nutrients;
+  if (n) {
+    nut = {
+      kcal: Math.round(n.energy?.quantity || 0),
+      fat: +(n.fat?.quantity || 0).toFixed(1),
+      sat: +(n.saturated_fat?.quantity || 0).toFixed(1),
+      carbs: +(n.carbohydrate?.quantity || 0).toFixed(1),
+      sug: +(n.sugar?.quantity || 0).toFixed(1),
+      pro: +(n.protein?.quantity || 0).toFixed(1),
+      salt: +(n.salt?.quantity || 0).toFixed(2),
+      src: "Kafoodie (" + (p.nutrition.basis || "per portion") + ")"
+    };
+  }
+
+  const ing = Array.isArray(p.ingredients) ? p.ingredients.map(ig => [ig.name, ig.grams, ig.cost, ig.allergens || []]) : null;
+
+  return { c: code, n: name, cat, v, a, sg, price, menu: menuPrice, nut, ing };
+}
+
+async function loadVenue(venueId) {
+  if (venueId === "sample") {
+    P = [...SAMPLE_P];
+    const b = $("#sampleBadge");
+    b.textContent = "Sample data · front-end skin only";
+    b.style.borderColor = "var(--warn)";
+    b.style.color = "var(--warn)";
+    $("#rebuildBtn").style.display = "none";
+    updateCategories();
+    sel = 0;
+    render();
+    return;
+  }
+  const vSel = $("#venue");
+  const opt = vSel.selectedOptions[0];
+  const venueName = opt ? opt.dataset.name : venueId;
+  const rb = $("#rebuildBtn");
+  rb.style.display = "inline-block";
+  rb.textContent = "Rebuild";
+  rb.disabled = false;
+
+  const b = $("#sampleBadge");
+  b.textContent = `Loading ${venueName}…`;
+  try {
+    const res = await fetch(`/api/venues/${encodeURIComponent(venueId)}`);
+    if (!res.ok) throw new Error("Venue fetch failed: " + res.status);
+    const data = await res.json();
+    if (!data.hasExport && !data.products) {
+      P = [];
+      b.textContent = `${venueName} (no export generated yet)`;
+      b.style.borderColor = "var(--warn)";
+      b.style.color = "var(--warn)";
+      $("#main").innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <h3 style="margin-top:0">No export has been generated yet for ${esc(venueName)}</h3>
+        <p style="color:var(--gray-hi);margin:10px 0 20px">Click below to run the build pipeline and generate the venue export snapshot.</p>
+        <button class="btn on" id="runBuildBtn" style="padding:8px 16px;font-size:13px">Generate ${esc(venueName)} export</button>
+      </div>`;
+      $("#kpis").innerHTML = "";
+      const rbb = $("#runBuildBtn");
+      if (rbb) rbb.onclick = () => runRebuild(venueName, venueId);
+      return;
+    }
+
+    P = (data.products || []).map((prod, idx) => mapVenueProduct(prod, idx));
+    b.textContent = `Live export: ${venueName} (${P.length} products)`;
+    b.style.borderColor = "var(--ok)";
+    b.style.color = "var(--ok)";
+    updateCategories();
+    sel = 0;
+    render();
+  } catch (err) {
+    b.textContent = `Error loading ${venueName}`;
+    b.style.borderColor = "var(--err)";
+    b.style.color = "var(--err)";
+    console.error(err);
+  }
+}
+
+async function runRebuild(venueName, venueId) {
+  const btn = $("#rebuildBtn");
+  btn.disabled = true;
+  btn.textContent = "Rebuilding…";
+  try {
+    await fetch("/api/rebuild", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({venue: venueName})
+    });
+    const poll = setInterval(async () => {
+      try {
+        const sRes = await fetch("/api/rebuild-status");
+        const s = await sRes.json();
+        if (s.status !== "running") {
+          clearInterval(poll);
+          btn.disabled = false;
+          btn.textContent = "Rebuild";
+          await initVenues();
+          $("#venue").value = venueId;
+          await loadVenue(venueId);
+        }
+      } catch(e) {
+        clearInterval(poll);
+        btn.disabled = false;
+        btn.textContent = "Rebuild";
+      }
+    }, 1500);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = "Rebuild";
+    alert("Rebuild trigger failed: " + e.message);
+  }
+}
+
+async function initVenues() {
+  try {
+    const res = await fetch("/api/venues");
+    if (!res.ok) return;
+    const venues = await res.json();
+    const vSel = $("#venue");
+    const options = ['<option value="sample">Sample data (10 mock items)</option>'];
+    venues.forEach(v => {
+      const tag = v.hasExport ? ` (${v.region} · ready)` : ` (${v.region} · no export)`;
+      options.push(`<option value="${esc(v.id)}" data-name="${esc(v.name)}" data-has="${v.hasExport?1:0}">${esc(v.name)}${tag}</option>`);
+    });
+    vSel.innerHTML = options.join("");
+    const preferred = venues.find(v => v.hasExport);
+    if (preferred) {
+      vSel.value = preferred.id;
+      await loadVenue(preferred.id);
+    }
+  } catch(e) {
+    console.warn("Could not load venues", e);
+  }
+}
+
+$("#venue").addEventListener("change", e => loadVenue(e.target.value));
+$("#rebuildBtn").addEventListener("click", () => {
+  const vSel = $("#venue");
+  const opt = vSel.selectedOptions[0];
+  const name = opt ? opt.dataset.name : vSel.value;
+  runRebuild(name, vSel.value);
+});
+
+updateCategories();
 ["#q","#cat","#fi"].forEach(s=>$(s).addEventListener("input",render));
 render();
+initVenues();
 </script>
 </body>
 </html>

@@ -19,14 +19,18 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from db.database import init_db, connect as db_connect
+import db.auth as auth
+from jobs.rebuild import get_status as get_rebuild_status, trigger_rebuild, venue_for_menu
+
 
 ROOT = Path(__file__).resolve().parent
 PAGES = ROOT / "pages"
-EXPLORER_PAGE = "Menu explorer — Inn Collection Group.html"
 MENUS = ROOT / "inncollectiongroup.com_root" / "menus_md"
 PDFS = ROOT / "inncollectiongroup.com_root" / "documents" / "extracted-to-md"
 EXPORTS = ROOT / "exports"
 REVIEW_DB = ROOT / "menu_review_state.sqlite3"
+DB_BACKUP_DIR = ROOT / "db" / "backups"
 MAX_EXPORT_REQUEST_BYTES = 32 * 1024 * 1024
 MAX_EXPORT_ITEMS = 20_000
 ASSET_HOST = "www.inncollectiongroup.com"
@@ -110,17 +114,43 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlsplit(self.path).path
-        if path not in ("/api/export", "/api/issues", "/api/issues/fix-duplicates"):
+        is_launch_op = path.startswith("/api/launches/") and (path.endswith("/tasks") or path.endswith("/venues"))
+        if not (
+            path in ("/api/export", "/api/issues", "/api/issues/fix-duplicates", "/api/rebuild", "/api/login", "/api/logout")
+            or is_launch_op
+        ):
             self.send_error(404, "Not found")
             return
         payload = self._read_json_body()
         if payload is JSON_BODY_ERROR:
+            return
+        if path == "/api/login":
+            self._handle_login(payload)
+            return
+        if path == "/api/logout":
+            self._handle_logout()
+            return
+        if path == "/api/rebuild":
+            venue = payload.get("venue") if isinstance(payload, dict) else None
+            if not isinstance(venue, str) or not venue.strip():
+                self._send_json({"error": "A venue name or 'all' is required"}, status=400)
+                return
+            status = trigger_rebuild(venue.strip())
+            self._send_json(status)
             return
         if path == "/api/issues":
             self._save_issue_review(payload)
             return
         if path == "/api/issues/fix-duplicates":
             self._remove_duplicate_lines(payload)
+            return
+        if is_launch_op and path.endswith("/tasks"):
+            campaign_id = path[len("/api/launches/"): -len("/tasks")].strip("/")
+            self._update_launch_task(campaign_id, payload)
+            return
+        if is_launch_op and path.endswith("/venues"):
+            campaign_id = path[len("/api/launches/"): -len("/venues")].strip("/")
+            self._update_launch_venue(campaign_id, payload)
             return
 
         items = payload.get("items") if isinstance(payload, dict) else None
@@ -160,11 +190,9 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
             "/pages/fnb-crosscheck.html",
             "/pages/launch-readiness.html",
             "/pages/product-data.html",
+            "/pages/menu-explorer.html",
         ):
             self._send_file(PAGES / request.path.rsplit("/", 1)[-1], "text/html; charset=utf-8")
-            return
-        if request.path == "/pages/menu-explorer.html":
-            self._send_file(PAGES / EXPLORER_PAGE, "text/html; charset=utf-8")
             return
         if request.path == "/pages/menu-explorer-data.js":
             self._send_file(PAGES / "menu-explorer-data.js", "text/javascript; charset=utf-8")
@@ -175,9 +203,36 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                 "text/csv; charset=utf-8",
             )
             return
+        if request.path == "/api/rebuild-status":
+            self._send_json(get_rebuild_status())
+            return
+        if request.path == "/api/me":
+            self._handle_me()
+            return
+        if request.path == "/api/launches":
+            self._get_launch_campaigns()
+            return
+        if request.path.startswith("/api/launches/"):
+            campaign_id = request.path[len("/api/launches/"):].strip("/")
+            if campaign_id:
+                self._get_launch_detail(campaign_id)
+                return
+        if request.path == "/api/venues":
+            self._send_json(self._venue_index())
+            return
+        if request.path.startswith("/api/venues/"):
+            identifier = request.path[len("/api/venues/"):].strip("/")
+            if identifier:
+                self._venue_detail(identifier)
+                return
         if request.path == "/api/menus":
             self._send_json(self._menu_index())
             return
+        if request.path.startswith("/api/menus/"):
+            filename = unquote(request.path[len("/api/menus/"):].strip("/"))
+            if filename:
+                self._get_menu_detail(filename)
+                return
         if request.path == "/api/issues":
             name = self._query_name(request.query)
             if name is None or not self._known_menu(name):
@@ -224,19 +279,310 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
         return Path(name).name == name and name.endswith(".md") and (MENUS / name).is_file()
 
     @staticmethod
+    def _venue_index() -> list[dict[str, object]]:
+        import build_venue_export
+        entries = []
+        for name, cfg in sorted(build_venue_export.VENUES.items(), key=lambda x: x[0].casefold()):
+            region = cfg.get("region") or "Unknown"
+            venue_id = cfg.get("id") or name.lower().replace(" ", "-")
+            export_file = EXPORTS / region / name / "venue.json"
+            has_export = export_file.is_file()
+            entries.append({
+                "id": venue_id,
+                "name": name,
+                "region": region,
+                "slug": cfg.get("slug") or venue_id,
+                "menuCount": len(cfg.get("menu_files", ())),
+                "hasExport": has_export,
+                "exportSize": export_file.stat().st_size if has_export else 0,
+            })
+        return entries
+
+    def _venue_detail(self, identifier: str) -> None:
+        import build_venue_export
+        clean_id = unquote(identifier).strip().casefold()
+        matched_name = None
+        matched_cfg = None
+        for name, cfg in build_venue_export.VENUES.items():
+            if (
+                name.casefold() == clean_id
+                or cfg.get("id", "").casefold() == clean_id
+                or cfg.get("slug", "").casefold() == clean_id
+            ):
+                matched_name = name
+                matched_cfg = cfg
+                break
+
+        if not matched_name:
+            self._send_json({"error": f"Venue '{identifier}' not found"}, status=404)
+            return
+
+        region = matched_cfg.get("region") or "Unknown"
+        export_file = EXPORTS / region / matched_name / "venue.json"
+        if not export_file.is_file():
+            self._send_json({
+                "venue": {
+                    "id": matched_cfg.get("id"),
+                    "name": matched_name,
+                    "region": region,
+                    "slug": matched_cfg.get("slug"),
+                    "menuFiles": list(matched_cfg.get("menu_files", ())),
+                },
+                "hasExport": False,
+                "message": "Export not yet generated. Use POST /api/rebuild with this venue to generate it."
+            }, status=200)
+            return
+
+        try:
+            with open(export_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self._send_json(data)
+        except Exception as error:
+            self._send_json({"error": f"Could not read venue export: {error}"}, status=500)
+
+    @staticmethod
     def _menu_index() -> list[dict[str, object]]:
         entries = []
         for path in sorted(MENUS.glob("*.md"), key=lambda item: item.name.casefold()):
             pdf = PDFS / f"{path.stem}.pdf"
+            venue = venue_for_menu(path.name)
             entries.append(
                 {
                     "name": path.name,
                     "kind": menu_kind(path.name),
+                    "venue": venue,
                     "hasPdf": pdf.is_file(),
                     "bytes": path.stat().st_size,
                 }
             )
         return entries
+
+    def _get_menu_detail(self, name: str) -> None:
+        if not self._known_menu(name):
+            self._send_json({"error": "Menu not found"}, status=404)
+            return
+        try:
+            path, content, source_hash = self._issue_source(name)
+            with closing(self._review_connection()) as connection, connection:
+                rows = connection.execute(
+                    "SELECT issue_id, status, note, updated_at FROM issue_reviews "
+                    "WHERE menu_name = ? AND source_hash = ?",
+                    (name, source_hash),
+                ).fetchall()
+
+            venue = venue_for_menu(name)
+            pdf = PDFS / f"{Path(name).stem}.pdf"
+            self._send_json({
+                "name": name,
+                "kind": menu_kind(name),
+                "venue": venue,
+                "hasPdf": pdf.is_file(),
+                "bytes": len(content),
+                "sourceHash": source_hash,
+                "content": content.decode("utf-8", errors="replace"),
+                "decisions": {
+                    row[0]: {"status": row[1], "note": row[2], "updated_at": row[3]}
+                    for row in rows
+                },
+            })
+        except Exception as error:
+            self._send_json({"error": f"Could not read menu: {error}"}, status=500)
+
+    def _get_session_user(self) -> dict | None:
+        cookie_header = self.headers.get("Cookie", "")
+        from http.cookies import SimpleCookie
+        cookie = SimpleCookie()
+        try:
+            cookie.load(cookie_header)
+        except Exception:
+            return None
+        sess_cookie = cookie.get("icg_session")
+        if not sess_cookie:
+            return None
+        with closing(self._review_connection()) as conn:
+            return auth.get_user_from_session(conn, sess_cookie.value)
+
+    def _current_user_name(self) -> str:
+        u = self._get_session_user()
+        return u["username"] if u else "local"
+
+    def _handle_login(self, payload: object) -> None:
+        if not isinstance(payload, dict):
+            self._send_json({"error": "Request body must be an object"}, status=400)
+            return
+        username = payload.get("username", "").strip()
+        password = payload.get("password", "")
+        if not username or not password:
+            self._send_json({"error": "Username and password are required"}, status=400)
+            return
+        with closing(self._review_connection()) as conn:
+            user = auth.authenticate_user(conn, username, password)
+            if not user:
+                self._send_json({"error": "Invalid username or password"}, status=401)
+                return
+            sess_id = auth.create_session(conn, username)
+            auth.record_audit(conn, "user", username, "login", "Successful session login", username)
+        cookie = f"icg_session={sess_id}; Path=/; HttpOnly; SameSite=Lax"
+        data = json.dumps({"ok": True, "user": user}, ensure_ascii=False).encode("utf-8")
+        self._send_bytes(data, "application/json; charset=utf-8", headers={"Set-Cookie": cookie})
+
+    def _handle_logout(self) -> None:
+        cookie_header = self.headers.get("Cookie", "")
+        from http.cookies import SimpleCookie
+        cookie = SimpleCookie()
+        try:
+            cookie.load(cookie_header)
+        except Exception:
+            pass
+        sess = cookie.get("icg_session")
+        if sess:
+            with closing(self._review_connection()) as conn:
+                auth.delete_session(conn, sess.value)
+        clear_cookie = "icg_session=deleted; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+        data = json.dumps({"ok": True}, ensure_ascii=False).encode("utf-8")
+        self._send_bytes(data, "application/json; charset=utf-8", headers={"Set-Cookie": clear_cookie})
+
+    def _handle_me(self) -> None:
+        user = self._get_session_user()
+        if user:
+            self._send_json({"authenticated": True, "user": user})
+        else:
+            self._send_json({"authenticated": False, "user": None})
+
+    def _get_launch_campaigns(self) -> None:
+        with closing(self._review_connection()) as conn:
+            rows = conn.execute(
+                "SELECT id, name, launch_date, as_of_date FROM launch_campaigns ORDER BY launch_date DESC"
+            ).fetchall()
+            self._send_json([
+                {"id": r["id"], "name": r["name"], "launchDate": r["launch_date"], "asOfDate": r["as_of_date"]}
+                for r in rows
+            ])
+
+    def _get_launch_detail(self, campaign_id: str) -> None:
+        with closing(self._review_connection()) as conn:
+            camp = conn.execute("SELECT * FROM launch_campaigns WHERE id = ?", (campaign_id,)).fetchone()
+            if not camp:
+                self._send_json({"error": "Launch campaign not found"}, status=404)
+                return
+
+            milestones = conn.execute(
+                "SELECT name, target_date FROM launch_milestones WHERE campaign_id = ? ORDER BY sort_order, target_date",
+                (campaign_id,)
+            ).fetchall()
+
+            ws_rows = conn.execute(
+                "SELECT workstream_id, name, owner, due_date, gate FROM launch_workstreams WHERE campaign_id = ? ORDER BY sort_order",
+                (campaign_id,)
+            ).fetchall()
+
+            task_rows = conn.execute(
+                "SELECT workstream_id, task_id, title, status, owner, note, updated_at, updated_by FROM launch_tasks WHERE campaign_id = ?",
+                (campaign_id,)
+            ).fetchall()
+
+            tasks_by_ws: dict[str, list] = {}
+            for t in task_rows:
+                tasks_by_ws.setdefault(t["workstream_id"], []).append({
+                    "id": t["task_id"],
+                    "t": t["title"],
+                    "st": t["status"],
+                    "o": t["owner"],
+                    "note": t["note"],
+                    "updatedAt": t["updated_at"],
+                    "updatedBy": t["updated_by"],
+                })
+
+            workstreams = []
+            for ws in ws_rows:
+                ws_id = ws["workstream_id"]
+                workstreams.append({
+                    "id": ws_id,
+                    "n": ws["name"],
+                    "s": ws_id,
+                    "o": ws["owner"],
+                    "due": ws["due_date"],
+                    "gate": ws["gate"],
+                    "items": sorted(tasks_by_ws.get(ws_id, []), key=lambda x: str(x["id"])),
+                })
+
+            venue_rows = conn.execute(
+                "SELECT venue_name, region, workstream_id, status FROM launch_venue_status WHERE campaign_id = ?",
+                (campaign_id,)
+            ).fetchall()
+            venue_status: dict[str, dict[str, str]] = {}
+            for vr in venue_rows:
+                venue_status.setdefault(vr["venue_name"], {})[vr["workstream_id"]] = vr["status"]
+
+            self._send_json({
+                "campaign": {
+                    "id": camp["id"],
+                    "name": camp["name"],
+                    "launchDate": camp["launch_date"],
+                    "asOfDate": camp["as_of_date"],
+                },
+                "milestones": [[m["name"], m["target_date"]] for m in milestones],
+                "workstreams": workstreams,
+                "venueStatus": venue_status,
+            })
+
+    def _update_launch_task(self, campaign_id: str, payload: object) -> None:
+        if not isinstance(payload, dict):
+            self._send_json({"error": "Request body must be an object"}, status=400)
+            return
+        ws_id = payload.get("workstreamId")
+        task_id = str(payload.get("taskId"))
+        status = payload.get("status")
+        note = payload.get("note")
+
+        if not ws_id or task_id is None or not status:
+            self._send_json({"error": "workstreamId, taskId, and status are required"}, status=400)
+            return
+
+        user = self._current_user_name()
+        now = datetime.now(timezone.utc).isoformat()
+
+        with closing(self._review_connection()) as conn:
+            conn.execute(
+                """UPDATE launch_tasks
+                   SET status = ?, note = COALESCE(?, note), updated_at = ?, updated_by = ?
+                   WHERE campaign_id = ? AND workstream_id = ? AND task_id = ?""",
+                (status, note, now, user, campaign_id, ws_id, task_id),
+            )
+            conn.commit()
+            auth.record_audit(
+                conn, "launch_task", f"{campaign_id}:{ws_id}:{task_id}", "update",
+                f"Status: {status}, note: {note or ''}", user
+            )
+        self._send_json({"ok": True, "status": status, "updatedAt": now, "updatedBy": user})
+
+    def _update_launch_venue(self, campaign_id: str, payload: object) -> None:
+        if not isinstance(payload, dict):
+            self._send_json({"error": "Request body must be an object"}, status=400)
+            return
+        venue_name = payload.get("venueName")
+        region = payload.get("region", "")
+        ws_id = payload.get("workstreamId")
+        status = payload.get("status")
+        if not venue_name or not ws_id or not status:
+            self._send_json({"error": "venueName, workstreamId, and status are required"}, status=400)
+            return
+        user = self._current_user_name()
+        now = datetime.now(timezone.utc).isoformat()
+        with closing(self._review_connection()) as conn:
+            conn.execute(
+                """INSERT INTO launch_venue_status (campaign_id, venue_name, region, workstream_id, status, updated_at, updated_by)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(campaign_id, venue_name, workstream_id) DO UPDATE SET
+                   status = excluded.status, updated_at = excluded.updated_at, updated_by = excluded.updated_by""",
+                (campaign_id, venue_name, region, ws_id, status, now, user),
+            )
+            conn.commit()
+            auth.record_audit(
+                conn, "launch_venue", f"{campaign_id}:{venue_name}:{ws_id}", "update",
+                f"Status: {status}", user
+            )
+        self._send_json({"ok": True, "venueName": venue_name, "status": status, "updatedBy": user})
 
     def _send_json(self, value: object, status: int = 200) -> None:
         data = json.dumps(value, ensure_ascii=False).encode("utf-8")
@@ -268,19 +614,7 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _review_connection() -> sqlite3.Connection:
-        connection = sqlite3.connect(REVIEW_DB)
-        connection.execute(
-            """CREATE TABLE IF NOT EXISTS issue_reviews (
-                menu_name TEXT NOT NULL,
-                source_hash TEXT NOT NULL,
-                issue_id TEXT NOT NULL,
-                status TEXT NOT NULL,
-                note TEXT NOT NULL DEFAULT '',
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (menu_name, source_hash, issue_id)
-            )"""
-        )
-        return connection
+        return db_connect(REVIEW_DB)
 
     def _get_issue_reviews(self, name: str) -> None:
         try:
@@ -334,6 +668,8 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "Menu changed since this review was opened; reload and try again"}, status=409)
             return
         try:
+            user = self._current_user_name()
+            now = datetime.now(timezone.utc).isoformat()
             with closing(self._review_connection()) as connection, connection:
                 connection.execute(
                     """INSERT INTO issue_reviews
@@ -341,7 +677,11 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                        VALUES (?, ?, ?, ?, ?, ?)
                        ON CONFLICT(menu_name, source_hash, issue_id) DO UPDATE SET
                        status = excluded.status, note = excluded.note, updated_at = excluded.updated_at""",
-                    (name, current_hash, issue_id, status, note, datetime.now(timezone.utc).isoformat()),
+                    (name, current_hash, issue_id, status, note, now),
+                )
+                auth.record_audit(
+                    connection, "issue_review", f"{name}:{issue_id}", "update",
+                    f"Status: {status}, note: {note}", user
                 )
         except sqlite3.Error as error:
             self._send_json({"error": f"Could not save issue review: {error}"}, status=500)
@@ -434,6 +774,8 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
         )
         status = "fixed" if remaining == 0 else "open"
         try:
+            user = self._current_user_name()
+            now = datetime.now(timezone.utc).isoformat()
             with closing(self._review_connection()) as connection, connection:
                 connection.execute(
                     """INSERT INTO issue_reviews
@@ -446,12 +788,20 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                         new_hash,
                         status,
                         note or f"Removed duplicate Markdown lines: {', '.join(map(str, sorted(line_numbers)))}",
-                        datetime.now(timezone.utc).isoformat(),
+                        now,
                     ),
+                )
+                auth.record_audit(
+                    connection, "menu_file", name, "fix_duplicates",
+                    f"Removed lines: {', '.join(map(str, sorted(line_numbers)))}", user
                 )
         except sqlite3.Error as error:
             self._send_json({"error": f"Menu was updated but review status could not be saved: {error}"}, status=500)
             return
+        rebuild_info = None
+        venue = venue_for_menu(name)
+        if venue:
+            rebuild_info = trigger_rebuild(venue)
         self._send_json(
             {
                 "name": name,
@@ -459,6 +809,7 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                 "removedLines": sorted(line_numbers),
                 "remainingRepeatedLines": remaining,
                 "status": status,
+                "rebuild": rebuild_info,
             }
         )
 
@@ -594,12 +945,34 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="127.0.0.1", help="interface to bind (default: localhost)")
     parser.add_argument("--port", type=int, default=8000, help="port to bind (default: 8000)")
+    parser.add_argument("--add-user", metavar="USERNAME", help="create or update a user and exit")
+    parser.add_argument("--role", default="coordinator", help="role for --add-user (default: coordinator)")
     args = parser.parse_args()
+
+    import logging
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    init_db(REVIEW_DB, backup_dir=DB_BACKUP_DIR)
+
+    if args.add_user:
+        import getpass
+        pw = getpass.getpass(f"Enter password for '{args.add_user}': ")
+        if not pw.strip():
+            print("Password cannot be empty.")
+            return
+        with closing(db_connect(REVIEW_DB)) as conn:
+            auth.add_user(conn, args.add_user.strip(), pw.strip(), args.add_user.strip().capitalize(), args.role)
+        print(f"User '{args.add_user}' registered successfully.")
+        return
 
     if not MENUS.is_dir() or not PDFS.is_dir() or not PAGES.is_dir():
         parser.error("Expected pages/, inncollectiongroup.com_root/menus_md/, and documents/extracted-to-md/")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", args.host):
         parser.error("--host must be a hostname or IP address")
+
+    if args.host not in ("127.0.0.1", "localhost"):
+        with closing(db_connect(REVIEW_DB)) as conn:
+            if auth.count_users(conn) == 0:
+                parser.error("When binding to an external interface (--host != 127.0.0.1), at least one user must exist in the database.")
 
     server = ThreadingHTTPServer((args.host, args.port), MenuReviewHandler)
     print(f"Menu review available at http://{args.host}:{args.port}/")
