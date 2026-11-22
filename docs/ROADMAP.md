@@ -15,7 +15,8 @@
 | 3 | Rebuild job + status endpoint | Close review→export loop | After Step 2 | ✅ Done |
 | 4 | API endpoints for venue/menu data + rewire product-data.html | First real API | After Step 3 | ✅ Done |
 | 5 | Launch tracking in SQLite + minimal authentication | Multi-user ready | After Step 4 | ✅ Done |
-| 6+ | Recipe, allergen, costing, EPOS modules | Deferred | After O1–O5 resolved | 🔒 Blocked |
+| 6 | Allergen gap inspection endpoint (read-only Kafoodie mirror) | Compliance visibility | Decision D7 | ✅ Done |
+| 7+ | Recipe BOM, costing, EPOS adapters | Deferred | After O1–O5 resolved | 🔒 Blocked |
 
 ---
 
@@ -98,13 +99,26 @@
 
 ---
 
-## Step 6+ — Deferred Modules (Gated on Open Decisions)
+## Step 6 — Allergen Gap Inspection (Read-Only Mirror)
+
+**Goal**: Expose an allergen and compliance gap inspection register without building a competing recipe/allergen engine (per Decision D7).
+
+**Deliverables**:
+- [x] Migration `db/migrations/004_menu_status.sql`: SQLite table `menu_reviews` for persisting sidebar review status and reviewer notes
+- [x] Server endpoints `GET /api/menu-reviews` and `POST /api/menu-reviews` with audit logging
+- [x] Rewired `pages/menu-review.html`: complete removal of `localStorage["inn-menu-reviews"]`, syncing sidebar status live to server
+- [x] Endpoint `GET /api/allergens/gaps`: scans generated `venue.json` files for missing Kafoodie allergen declarations (`allergenDataMissing` or empty allergen lists) and unmatched printed menu items, returning estate-wide compliance metrics
+- [x] Rewired `pages/product-data.html`: surfaces unset Kafoodie allergens (`is_pw_allergen_not_set`) as a release-blocking compliance check, adds a dedicated FIC gap filter (`<option value="gap">`), displays statutory sub-types (e.g. specific cereal grains, tree nuts), and adds live allergen KPI indicators
+- [x] Rewired `pages/launch-readiness.html`: live-integrates `GET /api/allergens/gaps` into the estate readiness matrix for the `MEN` workstream, surfaces live audit counts in the campaign KPIs, and provides dynamic site compliance hover tooltips
+
+---
+
+## Step 7+ — Deferred Modules (Gated on Open Decisions)
 
 These modules do not start until O3–O5 are resolved and D7 (Kafoodie boundary) is confirmed.
 
 | Module | Gate |
 |:---|:---|
-| Allergen gap register (read-only Kafoodie mirror) | O3 + O4 |
 | EPOS adapter and PLU mapping | O5 |
 | Supplier and purchasing registry | D7 confirmed |
 | Recipe and BOM module | D7 confirmed |

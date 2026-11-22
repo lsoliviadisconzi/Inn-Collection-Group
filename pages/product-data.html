@@ -56,7 +56,7 @@ tbody tr{cursor:pointer}tbody tr:hover{background:rgba(255,255,255,.03)}tr.sel t
   <button id="rebuildBtn" class="btn" style="display:none" title="Rebuild export for selected venue">Rebuild</button>
   <input id="q" class="search" type="search" placeholder="Search name or code…" autocomplete="off">
   <select id="cat" class="sel" aria-label="Category"></select>
-  <select id="fi" class="sel" aria-label="Issues"><option value="all">Any record state</option><option value="block">Has blocking issues</option><option value="warn">Warnings only</option><option value="clean">Clean</option></select>
+  <select id="fi" class="sel" aria-label="Issues"><option value="all">Any record state</option><option value="gap">Allergen data missing (FIC)</option><option value="block">Has blocking issues</option><option value="warn">Warnings only</option><option value="clean">Clean</option></select>
   <div class="seg" role="group" aria-label="View"><button class="btn on" data-v="p">Products</button><button class="btn" data-v="m">Allergen matrix</button></div>
 </div>
 <main class="content"><div class="inner">
@@ -90,6 +90,7 @@ const cost=p=>{const k=(p.ing||[]).map(i=>i[2]);return{sum:k.filter(x=>x!=null).
 const gp=p=>{if(!p.ing)return null;const c=cost(p),net=p.price/(1+VAT);return c.miss?null:(net-c.sum)/net};
 function issues(p,i){
   const o=[],d=derived(p),miss=d.filter(k=>!p.a[k]);
+  if(p.allergenDataMissing)o.push(["block","Statutory allergen declaration is unset in Kafoodie (is_pw_allergen_not_set); requires menu manager review before publication","a"]);
   if(!p.sg)o.push(["block","Allergens not signed off","a"]);
   if(miss.length)o.push(["block","Recipe contains "+miss.map(k=>AN[k]).join(", ")+" but the declaration does not","a"]);
   const bad=p.v.includes("Ve")?["milk","eggs","fish","crustaceans","molluscs"].filter(k=>p.a[k]||d.includes(k)):p.v.includes("V")?["fish","crustaceans","molluscs"].filter(k=>p.a[k]||d.includes(k)):[];
@@ -106,10 +107,17 @@ function issues(p,i){
 const sev=is=>is.some(x=>x[0]==="block")?"block":is.length?"warn":"ok";
 const chips=p=>AL.filter(a=>p.a[a[0]]).map(a=>`<span class="ch${p.a[a[0]]===2?" m":""}" title="${a[2]}">${a[1]}</span>`).join("")||'<span class="mono">none declared</span>';
 function filtered(){const q=$("#q").value.trim().toLowerCase(),c=$("#cat").value,f=$("#fi").value;
-  return P.map((p,i)=>[p,i]).filter(([p,i])=>{const s=sev(issues(p,i));return(c==="all"||p.cat===c)&&(!q||(p.n+" "+p.c).toLowerCase().includes(q))&&(f==="all"||(f==="clean"?s==="ok":s===f))})}
+  return P.map((p,i)=>[p,i]).filter(([p,i])=>{
+    const is=issues(p,i),s=sev(is);
+    const hasGap=Boolean(p.allergenDataMissing)||is.some(x=>x[2]==="a"&&x[0]==="block");
+    if(f==="gap"&&!hasGap)return false;
+    return(c==="all"||p.cat===c)&&(!q||(p.n+" "+p.c).toLowerCase().includes(q))&&(f==="all"||f==="gap"||(f==="clean"?s==="ok":s===f));
+  });
+}
 function kpis(){
   const all=P.map((p,i)=>issues(p,i)),n=P.length,blk=all.filter(x=>sev(x)==="block").length,iss=all.reduce((a,x)=>a+x.length,0);
-  $("#kpis").innerHTML=[["Products",n,"in this sample"],["Allergens signed off",`${P.filter(p=>p.sg).length} / ${n}`,"declaration confirmed by a person"],["Records ready",`${all.filter(x=>sev(x)!=="block").length} / ${n}`,"no blocking issue"],["Blocking issues",iss?all.reduce((a,x)=>a+x.filter(y=>y[0]==="block").length,0):0,`across ${blk} products`],["GP below floor",P.filter(p=>{const g=gp(p);return g!=null&&g<GPF}).length,`floor ${GPF*100}%`]].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+  const unsets=P.filter(p=>p.allergenDataMissing).length;
+  $("#kpis").innerHTML=[["Products",n,"in this venue/sample"],["Allergens signed off",`${P.filter(p=>p.sg).length} / ${n}`,"declaration confirmed by a person"],["Allergens unset (FIC)",unsets,unsets?`<b style="color:var(--err)">${unsets}</b> require Kafoodie entry`:"All declared"],["Blocking issues",iss?all.reduce((a,x)=>a+x.filter(y=>y[0]==="block").length,0):0,`across ${blk} products`],["GP below floor",P.filter(p=>{const g=gp(p);return g!=null&&g<GPF}).length,`floor ${GPF*100}%`]].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
 }
 function list(){
   const rows=filtered();
@@ -118,11 +126,14 @@ function list(){
 }
 function tabBody(p,i){
   if(tab==="a"){const d=derived(p);
-    return `<div class="al">${AL.map(a=>{const s=p.a[a[0]]||0,inR=d.includes(a[0]),hit=inR&&!s;
+    const gapAlert=p.allergenDataMissing?`<div class="is block" style="margin-bottom:12px;padding:8px 12px;border-radius:6px"><b>STATUTORY COMPLIANCE ALERT:</b> Kafoodie allergen data is unset (<code>is_pw_allergen_not_set = true</code>). Under FIC Regulations, allergen information must be verified before sale.</div>`:"";
+    return gapAlert+`<div class="al">${AL.map(a=>{const s=p.a[a[0]]||0,inR=d.includes(a[0]),hit=inR&&!s;
       const src=(p.ing||[]).filter(g=>g[3].includes(a[0])).map(g=>g[0]).join(", ");
-      return`<div class="${hit?"hit":""}">${a[2]} <span class="mono">${a[1]}</span><small>${src?"In recipe: "+esc(src)+(hit?" — not declared":""):"Not in recipe"}</small></div><div><button class="st ${s===1?"c":s===2?"m":""}" data-al="${a[0]}">${["Not present","Contains","May contain"][s]}</button></div>`}).join("")}</div>
+      const subItems=(p.rawAllergens||[]).filter(item=>(item.name||"").toLowerCase().includes(a[0])||(item.primaryId&&item.label&&(item.name||item.label).toLowerCase().includes(a[0])));
+      const subText=subItems.length?subItems.map(item=>item.name||item.label).join(", "):"";
+      return`<div class="${hit?"hit":""}">${a[2]} <span class="mono">${a[1]}</span>${subText?`<small style="color:var(--info);display:block">Statutory sub-type: ${esc(subText)}</small>`:""}<small>${src?"In recipe: "+esc(src)+(hit?" — not declared":""):"Not in recipe"}</small></div><div><button class="st ${s===1?"c":s===2?"m":""}" data-al="${a[0]}">${["Not present","Contains","May contain"][s]}</button></div>`}).join("")}</div>
       <p style="margin:12px 0 6px"><button class="btn" id="sign" ${issues(p,i).some(x=>x[2]==="a"&&x[1]!=="Allergens not signed off")?"disabled":""}>${p.sg?"Signed off — change to unsign":"Sign off allergens"}</button></p>
-      <div class="note" style="margin:0">Sign-off is blocked while the recipe and the declaration disagree. Any edit removes the sign-off.</div>`}
+      <div class="note" style="margin:0">Sign-off is blocked while statutory allergens are unset or the recipe and declaration disagree. Any edit removes the sign-off.</div>`}
   if(tab==="n"){if(p.nut==="exempt")return'<div class="ok-l">Exempt: alcoholic drink, no nutrition declaration required in this sample.</div>';
     if(!p.nut)return'<div class="empty">No nutrition values yet.<br><span class="mono">Needs a supplier sheet, or a costed recipe to calculate from.</span></div>';
     const n=p.nut,r=[["Energy",n.kcal+" kcal"],["Fat",n.fat+" g"],["of which saturates",n.sat+" g"],["Carbohydrate",n.carbs+" g"],["of which sugars",n.sug+" g"],["Protein",n.pro+" g"],["Salt",n.salt+" g"]];
@@ -216,7 +227,21 @@ function mapVenueProduct(p, idx) {
 
   const ing = Array.isArray(p.ingredients) ? p.ingredients.map(ig => [ig.name, ig.grams, ig.cost, ig.allergens || []]) : null;
 
-  return { c: code, n: name, cat, v, a, sg, price, menu: menuPrice, nut, ing };
+  return {
+    c: code,
+    n: name,
+    cat,
+    v,
+    a,
+    sg,
+    price,
+    menu: menuPrice,
+    nut,
+    ing,
+    allergenDataMissing: Boolean(p.allergenDataMissing || (!p.allergens?.length && !p.mayContain?.length)),
+    rawAllergens: p.allergens || [],
+    rawMayContain: p.mayContain || [],
+  };
 }
 
 async function loadVenue(venueId) {

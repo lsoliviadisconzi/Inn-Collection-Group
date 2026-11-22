@@ -98,43 +98,40 @@
 
 ---
 
+### D11 — Orphaned File Deletions (O2 Resolved)
+**Question**: Confirm deletion of confirmed orphaned files (Netlify remnants, stale root copies, leftover test data).  
+**Decision**: Approved and executed. Deleted `pages/menus_md/`, `pages/documents/`, `pages/discovered_media.csv`, `pages/index.html`, `pages/Menu explorer — Inn Collection Group.html`, `exports/TestRegion/`, and `root.tree.md`.  
+**Status**: `Decided` — Completed in Step 1
+
+---
+
+### D12 — Allergen Publication Hard Gate (O3 Resolved)
+**Question**: What happens when a venue tries to publish or print a menu where an item has unset allergen flags (`is_pw_allergen_not_set = true` / missing allergen declarations)?  
+**Decision**: Hard block. If any item on a menu has unset statutory allergen declarations, the system strictly refuses to mark the menu "Release Ready" or export print assets. An audit record is logged with the user, timestamp, menu name, and the specific blocking products.  
+**Rationale**: Mandatory statutory compliance under FIC Regulation (EU) 1169/2011 and FIR 2014. Serving dishes with unverified allergens presents unacceptable guest health, civil liability, and criminal penalties.  
+**Status**: `Decided` — Enforced in backend review validation and UI inspector
+
+---
+
+### D13 — Kafoodie Direct API Ingestion (O4 Resolved)
+**Question**: How should fresh recipe, allergen, and nutrition data from Kafoodie enter the monolith?  
+**Decision**: Direct Kafoodie REST API Ingestion. Replace fragile web crawl scrapers with an authenticated API client syncing directly with Kafoodie's backend.  
+**Status**: `Decided` — Selected architecture for ongoing synchronization
+
+---
+
 ## Open
 
 ### O1 — Outlet IDs for Dean Court and The Bull's Head Inn
-**Question**: What are the Kafoodie outlet IDs for Dean Court and The Bull's Head Inn? (They appear missing from the reconciliation.)  
-**Status**: `Open` — does not block Step 1
+**Question**: What are the Kafoodie outlet IDs for Dean Court and The Bull's Head Inn?  
+**Investigation Evidence**: As documented in `inncollectiongroup.com_root/kafoodie/ALL_MENUS_CHECKLIST.md`, both venues have extracted Markdown menus in `menus_md/` but have no corresponding Kafoodie all-menus JSON crawl in `inncollectiongroup.com_root/kafoodie/`. Consequently, `build_venue_export.py` cannot generate `venue.json` for them until their Kafoodie outlet IDs or direct Kafoodie exports are provided.  
+**Status**: `Open` — awaiting Kafoodie outlet identifiers from estate management / Kafoodie administrator
 
 ---
 
-### O2 — Orphaned File Deletions (Confirmation Required)
-**Question**: Confirm deletion of the following:
-- `pages/menus_md/` — orphaned second copy of menus (Netlify remnant)
-- `pages/documents/` — duplicate of `inncollectiongroup.com_root/documents/`
-- `pages/discovered_media.csv` — duplicate CSV
-- `pages/index.html` — byte-identical to `menu-explorer.html`
-- `pages/Menu explorer — Inn Collection Group.html` — stale copy
-- `exports/TestRegion/` — leftover test data
-- `root_tree.md` (root-level, without dot) — which tree file is the keeper?
-
-**Status**: `Open` — awaiting your confirmation; does not block Step 1
-
----
-
-### O3 — Allergen Publication Rule
-**Question**: What is the policy when an item has un-set allergen flags (`is_pw_allergen_not_set = true`)? Block publication? Warn only? Flag for review?  
-**Status**: `Open` — policy decision for Compliance Officer; not a technical blocker
-
----
-
-### O4 — Kafoodie Data Ingestion Method
-**Question**: How does Kafoodie data enter this platform? Options: (a) web crawl as now, (b) Kafoodie CSV/JSON export, (c) Kafoodie API.  
-**Status**: `Open` — depends on D7 and Kafoodie vendor relationship
-
----
-
-### O5 — EPOS Vendor
-**Question**: Which EPOS/till system does ICG use? (Zonal, Tevalis, Micros, or other?)  
-**Status**: `Open` — required before EPOS Adapter module can be scoped
+### O5 — EPOS Vendor & PLU Mapping Scope
+**Question**: Which EPOS / till system does the Inn Collection Group estate run (Zonal Aztec, Tevalis, Oracle Micros, or other)?  
+**Status**: `Open` — awaiting confirmation from estate IT / operations before scoping Step 7 EPOS adapter
 
 ---
 

@@ -1057,7 +1057,7 @@
     const qs = n => `?name=${encodeURIComponent(n)}`, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
     const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v && typeof v === "object" && !Array.isArray(v) ? { ...d, ...v } : d } catch (e) { return d } };
     let menus = [], current = null, md = "", blocks = [], sel = null, saveT, toastT, pdfTok = 0, pdfDoc = null, pdfPages = [], pdfText = [], pdfZoom = 1, pdfOK = false, pdfFailed = false, pdfW = 0, issueHash = "", issueReviews = {}, openIssueId = null;
-    let reviews = load("inn-menu-reviews", {});
+    let reviews = {};
     const UI = load("inn-menu-ui", { sbw: 310, mdw: 46, sbCol: false, mdCol: false, pdfCol: false, revCol: false, min: false });
     const saveUI = () => { try { localStorage.setItem("inn-menu-ui", JSON.stringify(UI)) } catch (e) { } };
     function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.remove("hidden"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add("hidden"), 4000) }
@@ -1088,10 +1088,29 @@
       const h = e.target.closest(".ph[data-col]"); if (h && h.parentElement.classList.contains("col")) { UI[h.dataset.col + "Col"] = false; applyUI(); saveUI() }
     });
 
-    /* ---------- reviews ---------- */
+    /* ---------- reviews (persisted in SQLite via /api/menu-reviews) ---------- */
     const reviewFor = n => reviews[n] && typeof reviews[n] === "object" ? reviews[n] : { status: "pending", note: "" };
-    function saveReviews() { try { localStorage.setItem("inn-menu-reviews", JSON.stringify(reviews)); const s = $("#saveState"); if (s) s.textContent = "Saved in this browser"; renderList(); counts() } catch (e) { toast("Could not save: " + e.message) } }
-    function setStatus(n, s) { reviews[n] = { ...reviewFor(n), status: s }; saveReviews(); renderHead() }
+    async function saveReviews(targetName = current) {
+      if (!targetName) return;
+      const s = $("#saveState");
+      if (s) s.textContent = "Saving to server...";
+      renderList();
+      counts();
+      const r = reviewFor(targetName);
+      try {
+        const res = await fetch("/api/menu-reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: targetName, status: r.status, note: r.note || "" })
+        });
+        if (!res.ok) throw new Error("Server responded " + res.status);
+        if (s && targetName === current) s.textContent = "Saved to server";
+      } catch (e) {
+        if (s && targetName === current) s.textContent = "Save failed (offline)";
+        toast("Could not save review to server: " + e.message);
+      }
+    }
+    function setStatus(n, s) { reviews[n] = { ...reviewFor(n), status: s }; saveReviews(n); renderHead() }
     function counts() { const rp = $("#reviewProgress"); if (rp) { rp.max = menus.length || 1; rp.value = menus.filter(m => reviewFor(m.name).status === "reviewed").length } $("#reviewedCount").textContent = menus.filter(m => reviewFor(m.name).status === "reviewed").length; $("#flaggedCount").textContent = menus.filter(m => reviewFor(m.name).status === "flagged").length }
 
     /* ---------- filters + list ---------- */
@@ -1194,13 +1213,13 @@
       const m = menus.find(x => x.name === current); if (!m) return; const r = reviewFor(m.name), a = analyze(md, m.hasPdf);
       $("#head").innerHTML = `<div><h1>${esc(displayName(m.name))}</h1><div class="fn">${esc(m.name)} · ${esc(m.kind)}${m.venue !== UNK ? " · " + esc(m.venue) + " · " + esc(m.region) : ""}</div></div><span class="spacer"></span><button class="btn sm" id="bRev"></button><button class="btn sm" id="prev">Previous</button><button class="btn sm" id="next">Next</button>`;
       $("#facts").innerHTML = `<span class="fact"><b>${a.heads}</b> sections</span><span class="fact"><b>${a.items}</b> list entries</span><span class="fact"><b>${a.words}</b> words</span><span class="fact"><b>${Math.max(1, Math.ceil(m.bytes / 1024))} KB</b> markdown</span>`;
-      $("#review").innerHTML = `<div class="card"><h2>Quick checks — signals to inspect, not automatic approvals</h2>${a.checks.map(checkMarkup).join("")}<div class="row" style="margin-top:6px"><button class="btn ok sm" data-status="reviewed">Mark reviewed</button><button class="btn bad sm" data-status="flagged">Flag for follow-up</button><button class="btn sm" data-status="pending">Reset</button><span class="stat">Status: <b>${r.status === "reviewed" ? "Reviewed" : r.status === "flagged" ? "Flagged" : "Needs review"}</b></span></div></div><div class="card"><h2>Reviewer notes</h2><textarea id="notes" placeholder="Capture corrections or follow-up...">${esc(r.note || "")}</textarea><span id="saveState" class="ss">Saved in this browser</span></div>`;
+      $("#review").innerHTML = `<div class="card"><h2>Quick checks — signals to inspect, not automatic approvals</h2>${a.checks.map(checkMarkup).join("")}<div class="row" style="margin-top:6px"><button class="btn ok sm" data-status="reviewed">Mark reviewed</button><button class="btn bad sm" data-status="flagged">Flag for follow-up</button><button class="btn sm" data-status="pending">Reset</button><span class="stat">Status: <b>${r.status === "reviewed" ? "Reviewed" : r.status === "flagged" ? "Flagged" : "Needs review"}</b></span></div></div><div class="card"><h2>Reviewer notes</h2><textarea id="notes" placeholder="Capture corrections or follow-up...">${esc(r.note || "")}</textarea><span id="saveState" class="ss">Saved to server</span></div>`;
       const warnings = a.checks.filter(c => c.w);
       $("#pdfReview").innerHTML = warnings.length ? `<span class="sub">Review findings · select one for details, locations, and actions</span>${warnings.map(checkMarkup).join("")}` : '<span class="sub">No current review findings</span>';
       $("#prev").onclick = () => step(-1); $("#next").onclick = () => step(1); $("#bRev").onclick = () => { UI.revCol = !UI.revCol; applyUI(); saveUI() };
       $$("[data-status]", $("#review")).forEach(b => b.onclick = () => setStatus(current, b.dataset.status));
       $$("#review [data-issue],#pdfReview [data-issue]").forEach(b => b.onclick = () => openIssue(b.dataset.issue));
-      $("#notes").oninput = e => { $("#saveState").textContent = "Unsaved changes..."; clearTimeout(saveT); const n = current, v = e.target.value; saveT = setTimeout(() => { reviews[n] = { ...reviewFor(n), note: v }; saveReviews() }, 350) };
+      $("#notes").oninput = e => { $("#saveState").textContent = "Unsaved changes..."; clearTimeout(saveT); const n = current, v = e.target.value; saveT = setTimeout(() => { reviews[n] = { ...reviewFor(n), note: v }; saveReviews(n) }, 350) };
       applyUI();
     }
     const ISSUE_HELP = {
@@ -1481,12 +1500,17 @@
       applyUI();
       try {
         try {
-          const [pmRes, srRes] = await Promise.all([
+          const [pmRes, srRes, mrRes] = await Promise.all([
             fetch("pdf_map.json", { cache: "no-store" }).catch(() => null),
-            fetch("seed_reviews.json", { cache: "no-store" }).catch(() => null)
+            fetch("seed_reviews.json", { cache: "no-store" }).catch(() => null),
+            fetch("/api/menu-reviews", { cache: "no-store" }).catch(() => null)
           ]);
           if (pmRes && pmRes.ok) PDF_MAP = await pmRes.json().catch(() => ({}));
           if (srRes && srRes.ok) SEED_REVIEWS = await srRes.json().catch(() => ([]));
+          if (mrRes && mrRes.ok) {
+            const mrData = await mrRes.json().catch(() => ({}));
+            if (mrData && mrData.reviews) reviews = mrData.reviews;
+          }
         } catch (e) { }
 
         let r = await fetch("/api/menus", { cache: "no-store" }).catch(() => null);

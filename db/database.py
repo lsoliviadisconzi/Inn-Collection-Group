@@ -23,8 +23,9 @@ _MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 # Public API
 # ---------------------------------------------------------------------------
 
-def init_db(db_path: Path, backup_dir: Path | None = None) -> None:
+def init_db(db_path: Path | str, backup_dir: Path | str | None = None) -> None:
     """Initialise the database: WAL mode, run pending migrations, start backup thread."""
+    db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     with _connect(db_path) as conn:
@@ -32,13 +33,14 @@ def init_db(db_path: Path, backup_dir: Path | None = None) -> None:
         _run_migrations(conn)
 
     if backup_dir is not None:
-        _start_backup_thread(db_path, backup_dir)
-        logger.info("Nightly backup thread started → %s", backup_dir)
+        backup_path = Path(backup_dir)
+        _start_backup_thread(db_path, backup_path)
+        logger.info("Nightly backup thread started → %s", backup_path)
 
 
-def connect(db_path: Path) -> sqlite3.Connection:
+def connect(db_path: Path | str) -> sqlite3.Connection:
     """Return a connection with WAL mode and a busy timeout already set."""
-    conn = _connect(db_path)
+    conn = _connect(Path(db_path))
     conn.row_factory = sqlite3.Row
     return conn
 

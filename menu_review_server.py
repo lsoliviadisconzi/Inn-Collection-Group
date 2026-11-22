@@ -116,7 +116,7 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         is_launch_op = path.startswith("/api/launches/") and (path.endswith("/tasks") or path.endswith("/venues"))
         if not (
-            path in ("/api/export", "/api/issues", "/api/issues/fix-duplicates", "/api/rebuild", "/api/login", "/api/logout")
+            path in ("/api/export", "/api/issues", "/api/issues/fix-duplicates", "/api/rebuild", "/api/login", "/api/logout", "/api/menu-reviews")
             or is_launch_op
         ):
             self.send_error(404, "Not found")
@@ -129,6 +129,9 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/logout":
             self._handle_logout()
+            return
+        if path == "/api/menu-reviews":
+            self._save_menu_review(payload)
             return
         if path == "/api/rebuild":
             venue = payload.get("venue") if isinstance(payload, dict) else None
@@ -208,6 +211,12 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
             return
         if request.path == "/api/me":
             self._handle_me()
+            return
+        if request.path == "/api/menu-reviews":
+            self._get_menu_reviews()
+            return
+        if request.path == "/api/allergens/gaps":
+            self._get_allergen_gaps()
             return
         if request.path == "/api/launches":
             self._get_launch_campaigns()
@@ -638,6 +647,181 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                 },
             }
         )
+
+    def _get_menu_reviews(self) -> None:
+        try:
+            with closing(self._review_connection()) as conn:
+                rows = conn.execute(
+                    "SELECT menu_name, status, note, updated_at, updated_by FROM menu_reviews"
+                ).fetchall()
+                reviews = {
+                    r["menu_name"]: {
+                        "status": r["status"],
+                        "note": r["note"],
+                        "updated_at": r["updated_at"],
+                        "updated_by": r["updated_by"],
+                    }
+                    for r in rows
+                }
+            self._send_json({"reviews": reviews})
+        except sqlite3.Error as error:
+            self._send_json({"error": f"Could not load menu reviews: {error}"}, status=500)
+
+    def _check_menu_allergen_block(self, name: str) -> list[str]:
+        import build_venue_export
+        venue = venue_for_menu(name)
+        if not venue:
+            return []
+        cfg = build_venue_export.VENUES.get(venue, {})
+        region = cfg.get("region") or "Unknown"
+        export_file = EXPORTS / region / venue / "venue.json"
+        if not export_file.is_file():
+            return []
+        try:
+            with open(export_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            missing = []
+            stem = Path(name).stem.casefold()
+            for menu in data.get("menus", []):
+                src_md = Path(menu.get("source", {}).get("markdown") or "").name.casefold()
+                src_file = (menu.get("source", {}).get("file") or "").casefold()
+                m_name = (menu.get("name") or "").casefold()
+                if src_md == name.casefold() or src_file == name.casefold() or m_name == stem or stem in m_name:
+                    for sec in menu.get("sections", []):
+                        for item in sec.get("items", []):
+                            prod = item.get("product")
+                            if prod:
+                                if prod.get("allergenDataMissing") or not (prod.get("allergens") or prod.get("mayContain")):
+                                    missing.append(prod.get("name") or item.get("name") or "Unknown dish")
+            return list(dict.fromkeys(missing))
+        except Exception:
+            return []
+
+    def _save_menu_review(self, payload: object) -> None:
+        if not isinstance(payload, dict):
+            self._send_json({"error": "Request body must be an object"}, status=400)
+            return
+        name = payload.get("name")
+        status = payload.get("status")
+        note = payload.get("note", "")
+        if not isinstance(name, str) or not self._known_menu(name):
+            self._send_json({"error": "Menu not found"}, status=404)
+            return
+        if not isinstance(status, str) or status not in {"pending", "reviewed", "flagged"}:
+            self._send_json({"error": "Invalid menu review status (must be pending, reviewed, or flagged)"}, status=400)
+            return
+        if not isinstance(note, str) or len(note) > 4000:
+            self._send_json({"error": "Review note must be 4000 characters or fewer"}, status=400)
+            return
+        now = datetime.now(timezone.utc).isoformat()
+        user = self._current_user_name()
+        if status == "reviewed":
+            blocking_items = self._check_menu_allergen_block(name)
+            if blocking_items:
+                try:
+                    with closing(self._review_connection()) as conn, conn:
+                        auth.record_audit(
+                            conn, "menu_status", name, "publication_blocked",
+                            f"Blocked attempt to mark reviewed by {user}. Items missing statutory allergens: {', '.join(blocking_items)}",
+                            user
+                        )
+                except sqlite3.Error:
+                    pass
+                self._send_json({
+                    "error": f"Publication blocked (Decision D12): {len(blocking_items)} item(s) have unset statutory allergens in Kafoodie: {', '.join(blocking_items[:3])}{'...' if len(blocking_items) > 3 else ''}. Allergen data must be completed before release.",
+                    "blocked": True,
+                    "missingItems": blocking_items
+                }, status=409)
+                return
+        try:
+            with closing(self._review_connection()) as conn, conn:
+                conn.execute(
+                    """INSERT INTO menu_reviews (menu_name, status, note, updated_at, updated_by)
+                       VALUES (?, ?, ?, ?, ?)
+                       ON CONFLICT(menu_name) DO UPDATE SET
+                       status = excluded.status, note = excluded.note, updated_at = excluded.updated_at, updated_by = excluded.updated_by""",
+                    (name, status, note, now, user),
+                )
+                auth.record_audit(
+                    conn, "menu_status", name, "update", f"Status: {status}, note: {note}", user
+                )
+        except sqlite3.Error as error:
+            self._send_json({"error": f"Could not save menu review: {error}"}, status=500)
+            return
+        self._send_json({"ok": True, "name": name, "status": status, "note": note, "updatedAt": now, "updatedBy": user})
+
+    def _get_allergen_gaps(self) -> None:
+        import build_venue_export
+        results = []
+        total_products = 0
+        total_missing_allergens = 0
+        total_unmatched_dishes = 0
+        for name, cfg in sorted(build_venue_export.VENUES.items(), key=lambda x: x[0].casefold()):
+            region = cfg.get("region") or "Unknown"
+            export_file = EXPORTS / region / name / "venue.json"
+            if not export_file.is_file():
+                results.append({
+                    "venue": name,
+                    "region": region,
+                    "hasExport": False,
+                    "status": "not_exported",
+                    "productsCount": 0,
+                    "missingAllergensCount": 0,
+                    "unmatchedDishesCount": 0,
+                    "gaps": ["Venue export has not been built yet"],
+                })
+                continue
+            try:
+                with open(export_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                products = data.get("products", [])
+                missing_products = [
+                    {"id": p.get("id"), "name": p.get("name"), "menu": p.get("menu")}
+                    for p in products
+                    if p.get("allergenDataMissing") or not (p.get("allergens") or p.get("mayContain"))
+                ]
+                match_report = data.get("matchReport", {})
+                unmatched = match_report.get("unmatched", 0)
+                gaps = data.get("gaps", [])
+
+                total_products += len(products)
+                total_missing_allergens += len(missing_products)
+                total_unmatched_dishes += unmatched
+
+                status = "compliant"
+                if missing_products or unmatched > 0:
+                    status = "action_required" if missing_products else "warning"
+
+                results.append({
+                    "venue": name,
+                    "region": region,
+                    "hasExport": True,
+                    "status": status,
+                    "productsCount": len(products),
+                    "missingAllergensCount": len(missing_products),
+                    "missingProducts": missing_products,
+                    "unmatchedDishesCount": unmatched,
+                    "gaps": gaps,
+                })
+            except Exception as e:
+                results.append({
+                    "venue": name,
+                    "region": region,
+                    "hasExport": True,
+                    "status": "error",
+                    "error": str(e),
+                })
+
+        self._send_json({
+            "summary": {
+                "totalVenues": len(build_venue_export.VENUES),
+                "exportedVenues": sum(1 for r in results if r.get("hasExport")),
+                "totalProducts": total_products,
+                "totalMissingAllergenProducts": total_missing_allergens,
+                "totalUnmatchedDishes": total_unmatched_dishes,
+            },
+            "venues": results,
+        })
 
     def _save_issue_review(self, payload: object) -> None:
         if not isinstance(payload, dict):

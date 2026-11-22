@@ -76,6 +76,8 @@ let currentCampaignId = "spring-2027";
 let AS=new Date("2027-02-08"),LAUNCH=new Date("2027-03-01"),D=s=>new Date(s);
 const ST={done:"Done",track:"On track",risk:"At risk",block:"Blocked",todo:"Not started"};
 let venueReadinessMap={};
+let allergenGapsMap={};
+let allergenSummary=null;
 /* name, short, owner, due, gate, [items: text, status, owner, note] */
 let W=[
 ["Menus","MEN","F&B team","2027-01-29","Every dish has a description, section and allergens, and F&B has approved the menu.",[["Dish list locked","done","F&B"],["Descriptions approved","done","F&B"],["Drinks list locked","track","F&B"],["Allergen matrix signed off","risk","F&B","Two dishes have no allergen entry"],["Menu artwork proofed","todo","Marketing"]]],
@@ -98,20 +100,52 @@ const rnd=(i,j)=>{const x=Math.sin(i*12.9898+j*78.233)*43758.5453;return x-Math.
 function cell(i,j){
   const sName=SITES[i][0],wsId=W[j].id||W[j].s;
   if(venueReadinessMap[sName]&&venueReadinessMap[sName][wsId])return venueReadinessMap[sName][wsId];
+  if(wsId==="MEN"&&allergenGapsMap[sName]){
+    const ag=allergenGapsMap[sName];
+    if(!ag.hasExport)return"todo";
+    if(ag.missingAllergensCount>0)return"block";
+    if(ag.unmatchedDishesCount>0)return"risk";
+    return"done";
+  }
   const w=W[j],p=pct(w),r=rnd(i,j),st=wst(w);
   if(st==="block"&&r>.86)return"block";if(r<p*.9)return"done";if(r<p*.9+.25)return"track";if(st==="risk"&&r>.9)return"risk";return"todo";
+}
+function cellTip(i,j,c){
+  const sName=SITES[i][0],ws=W[j],wsId=ws.id||ws.s;
+  if(wsId==="MEN"&&allergenGapsMap[sName]){
+    const ag=allergenGapsMap[sName];
+    if(!ag.hasExport)return`${esc(ws.n)}: Export pending rebuild`;
+    if(ag.missingAllergensCount>0)return`${esc(ws.n)}: Blocked · ${ag.missingAllergensCount} products missing Kafoodie allergen declarations`;
+    if(ag.unmatchedDishesCount>0)return`${esc(ws.n)}: At risk · ${ag.unmatchedDishesCount} printed dishes unmatched to Kafoodie`;
+    return`${esc(ws.n)}: Done · All ${ag.productsCount} products compliant`;
+  }
+  return`${esc(ws.n)}: ${c==="todo"?"Not started":ST[c]||c}`;
 }
 function kpis(){
   const all=W.flatMap(w=>w.items),done=all.filter(i=>i.st==="done").length,bl=all.filter(i=>i.st==="block"||i.st==="risk").length;
   const ready=SITES.filter((_,i)=>W.every((_,j)=>cell(i,j)==="done")).length,days=Math.round((LAUNCH-AS)/864e5),ov=W.filter(late).length;
-  $("#kpis").innerHTML=[["Overall ready",Math.round(done/all.length*100)+"%",`${done} of ${all.length} checklist items done`],["Days to launch",days,"launch on "+fd(LAUNCH)+" 2027"],["Workstreams overdue",ov,`of ${W.length}; due date passed, not done`],["Items blocked or at risk",bl,"need a decision or an input"],["Sites fully ready",`${ready} / ${SITES.length}`,"all eight workstreams done at the site"]].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+  const missingAllergens=allergenSummary?allergenSummary.totalMissingAllergenProducts:0;
+  const unmatchedDishes=allergenSummary?allergenSummary.totalUnmatchedDishes:0;
+  $("#kpis").innerHTML=[
+    ["Overall ready",Math.round(done/all.length*100)+"%",`${done} of ${all.length} checklist items done`],
+    ["Days to launch",days,"launch on "+fd(LAUNCH)+" 2027"],
+    ["Allergen compliance",missingAllergens?`<b style="color:var(--err)">${missingAllergens} unset</b>`:"100% declared",`${unmatchedDishes} unmatched dishes in live audit`],
+    ["Workstreams overdue",ov,`of ${W.length}; due date passed, not done`],
+    ["Items blocked/at risk",bl,"need a decision or an input"],
+    ["Sites fully ready",`${ready} / ${SITES.length}`,"all workstreams passing"]
+  ].map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
 }
 function tl(){
   const a=D(MS[0][1]),z=LAUNCH,span=z-a,pos=d=>Math.min(100,Math.max(0,(d-a)/span*100));
   $("#line").innerHTML=`<div class="fill" style="width:${pos(AS)}%"></div>`+MS.map(m=>{const d=D(m[1]),c=d<=AS?"d":(d-AS)<12*864e5?"n":"";return`<div class="ms ${c}" style="left:${pos(d)}%"><i></i><span>${m[0]}</span><em>${fd(d)}</em></div>`}).join("")+`<div class="now" style="left:${pos(AS)}%">Today ${fd(AS)}</div>`;
 }
 function cards(){
-  $("#ws").innerHTML=W.map((w,k)=>{const st=wst(w),n=w.items.length,c=s=>w.items.filter(i=>i.st===s).length,bad=w.items.find(i=>i.st==="block")||w.items.find(i=>i.st==="risk");
+  $("#ws").innerHTML=W.map((w,k)=>{
+    const st=wst(w),n=w.items.length,c=s=>w.items.filter(i=>i.st===s).length;
+    let bad=w.items.find(i=>i.st==="block")||w.items.find(i=>i.st==="risk");
+    if(w.s==="MEN"&&allergenSummary&&allergenSummary.totalMissingAllergenProducts>0&&(!bad||bad.st!=="block")){
+      bad={st:"block",t:"Live Allergen Audit Gate",note:`${allergenSummary.totalMissingAllergenProducts} products across estate have unset allergen declarations`};
+    }
     return`<button class="card ${st}" data-k="${k}"><h3>${esc(w.n)}<span class="b ${st}">${late(w)&&st!=="block"?"Overdue":ST[st]}</span></h3>
     <div class="bar"><i style="width:${c("done")/n*100}%;background:var(--ok)"></i><i style="width:${(c("track")+c("risk"))/n*100}%;background:var(--info)"></i><i style="width:${c("block")/n*100}%;background:var(--err)"></i></div>
     <div class="meta"><span>${c("done")} of ${n} done · ${esc(w.o)}</span><span class="${late(w)?"late":""}">Due ${fd(w.due)}</span></div>
@@ -120,7 +154,7 @@ function cards(){
 function grid(){
   const rg=$("#rg").value;let h=`<tr><th>Site</th>${W.map(w=>`<th title="${esc(w.n)}">${w.s}</th>`).join("")}</tr>`,last="",n=0;
   SITES.forEach((s,i)=>{if(rg!=="all"&&s[1]!==rg)return;n++;if(s[1]!==last){last=s[1];h+=`<tr class="rg"><td colspan="${W.length+1}">${esc(s[1])}</td></tr>`}
-    h+=`<tr><td>${esc(s[0])}</td>${W.map((w,j)=>{const c=cell(i,j);return`<td data-venue="${esc(s[0])}" data-region="${esc(s[1])}" data-ws="${esc(w.id||w.s)}" style="cursor:pointer" title="Click to cycle status"><i class="dot ${c}" title="${esc(w.n)}: ${c==="todo"?"Not started":ST[c]||c}"></i></td>`}).join("")}</tr>`});
+    h+=`<tr><td>${esc(s[0])}</td>${W.map((w,j)=>{const c=cell(i,j);const tip=cellTip(i,j,c);return`<td data-venue="${esc(s[0])}" data-region="${esc(s[1])}" data-ws="${esc(w.id||w.s)}" style="cursor:pointer" title="${esc(tip)} (click to override)"><i class="dot ${c}"></i></td>`}).join("")}</tr>`});
   $("#tb").innerHTML=h;$("#sc").textContent=`${n} of ${SITES.length} sites`;
 }
 function open(k){const w=W[k];W.cur=k;const st=wst(w);
@@ -236,14 +270,26 @@ async function loadCampaign(campId){
 
 async function initCampaign(){
   try {
-    const vRes=await fetch("/api/venues").catch(()=>null);
+    const [vRes, cRes, agRes]=await Promise.all([
+      fetch("/api/venues").catch(()=>null),
+      fetch("/api/launches").catch(()=>null),
+      fetch("/api/allergens/gaps").catch(()=>null)
+    ]);
+    if(agRes&&agRes.ok){
+      const agData=await agRes.json().catch(()=>null);
+      if(agData){
+        allergenSummary=agData.summary||null;
+        (agData.venues||[]).forEach(v=>{
+          allergenGapsMap[v.venue]=v;
+        });
+      }
+    }
     if(vRes&&vRes.ok){
       const vList=await vRes.json();
       if(vList.length){
         SITES=vList.map(v=>[v.name, v.region]);
       }
     }
-    const cRes=await fetch("/api/launches").catch(()=>null);
     if(cRes&&cRes.ok){
       const campaigns=await cRes.json();
       const sel=$("#campaignSel");
