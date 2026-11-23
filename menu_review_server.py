@@ -198,6 +198,11 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
         ):
             self._send_file(PAGES / request.path.rsplit("/", 1)[-1], "text/html; charset=utf-8")
             return
+        if request.path.startswith("/pages/recipes/"):
+            filename = request.path.rsplit("/", 1)[-1]
+            if filename:
+                self._send_file(PAGES / "recipes" / filename, "text/html; charset=utf-8")
+                return
         if request.path == "/pages/menu-explorer-data.js":
             self._send_file(PAGES / "menu-explorer-data.js", "text/javascript; charset=utf-8")
             return
@@ -206,6 +211,9 @@ class MenuReviewHandler(BaseHTTPRequestHandler):
                 ROOT / "inncollectiongroup.com_root" / "discovered_media.csv",
                 "text/csv; charset=utf-8",
             )
+            return
+        if request.path == "/pages/pdf_map.json":
+            self._send_file(PAGES / "pdf_map.json", "application/json; charset=utf-8")
             return
         if request.path == "/api/health":
             self._get_health()

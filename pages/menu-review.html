@@ -1276,8 +1276,7 @@
 
     function resolvePdfUrl(name) {
       if (PDF_MAP && PDF_MAP[name]) return PDF_MAP[name];
-      const stem = name.replace(/\.md$/i, "");
-      return "documents/extracted-to-md/" + encodeURIComponent(stem) + ".pdf";
+      return "/api/pdf?name=" + encodeURIComponent(name);
     }
 
     async function saveIssueReview(issueId, status) {
